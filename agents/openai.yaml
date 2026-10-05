@@ -1,3 +1,4 @@
 interface:
   display_name: "Codebase Video Explainer"
-  short_description: "Agent Skill that turns codebases into evidence-backed developer explainer videos"
+  short_description: "Turn a codebase into an evidence-backed developer explainer video"
+  default_prompt: "Analyze this repository and create an evidence-backed developer explainer video with natural Chinese narration, exact subtitles, and a real Remotion render when available."
