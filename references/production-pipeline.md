@@ -1,5 +1,18 @@
 # Production pipeline
 
+## Table of contents
+
+- [1. Render the architecture diagram](#1-render-the-architecture-diagram)
+- [2. Plan and capture UI screenshots](#2-plan-and-capture-ui-screenshots)
+- [3. Treat estimated subtitles as draft-only](#3-treat-estimated-subtitles-as-draft-only)
+- [4. Preferred natural Chinese TTS with exact timing](#4-preferred-natural-chinese-tts-with-exact-timing)
+- [5. Free GitHub Actions TTS fallback](#5-free-github-actions-tts-fallback)
+- [6. Initialize the Remotion project](#6-initialize-the-remotion-project)
+- [7. Prefer local Remotion rendering](#7-prefer-local-remotion-rendering)
+- [8. GitHub Actions Remotion fallback](#8-github-actions-remotion-fallback)
+- [9. FFmpeg fallback when Remotion is unavailable](#9-ffmpeg-fallback-when-remotion-is-unavailable)
+- [10. Final synchronization verification](#10-final-synchronization-verification)
+
 Use this reference after analysis and storyboard creation.
 
 ## 1. Render the architecture diagram
