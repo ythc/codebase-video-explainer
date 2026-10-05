@@ -2,38 +2,31 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Codebase Video Explainer is an Agent Skill for ChatGPT.** It teaches ChatGPT how to turn an unfamiliar software repository into an evidence-backed developer explainer video.
+**Codebase Video Explainer is a Codex plugin that bundles an Agent Skill for turning software repositories into evidence-backed developer explainer videos.**
 
-The Skill orchestrates a repeatable workflow: build a mental model from real source code, trace representative execution paths, generate architecture visuals and a storyboard, create natural Chinese narration with exact TTS-derived subtitles, then render the final MP4 with Remotion. Rendering prefers local Remotion, moves to GitHub Actions Remotion when local npm/browser access is blocked, and uses FFmpeg only as the final fallback.
+Give Codex a local project or GitHub repository. The bundled Skill analyzes the codebase, builds a verified mental model, creates a developer-focused storyboard, generates natural Chinese narration and exact subtitles, and renders a final MP4 with Remotion.
 
 ## Video demo
 
 [![Watch the Codebase Video Explainer demo](docs/media/codebase-video-explainer-preview.png)](docs/media/codebase-video-explainer-demo.mp4)
 
-This project can explain itself: the demo above was generated from this repository with the same analysis → TTS → exact subtitles → Remotion pipeline described below.
-
 [Watch or download the MP4](docs/media/codebase-video-explainer-demo.mp4)
-
 
 ## Install in Codex
 
-This repository is distributed as a **Codex plugin that bundles one Agent Skill**. Codex installs the plugin; the plugin exposes `codebase-video-explainer` from its `skills/` directory.
-
-### 1. Add this repository as a plugin marketplace
-
-From a terminal with Codex installed:
+### 1. Add the marketplace
 
 ```bash
 codex plugin marketplace add ythc/codebase-video-explainer --ref main
 ```
 
-Confirm Codex can see it:
+Optional check:
 
 ```bash
 codex plugin marketplace list
 ```
 
-### 2. Install the plugin in Codex
+### 2. Install the plugin
 
 Start Codex:
 
@@ -41,37 +34,63 @@ Start Codex:
 codex
 ```
 
-Then open the plugin browser:
+Open:
 
 ```text
 /plugins
 ```
 
-Select the `codebase-video-explainer` marketplace, open **Codebase Video Explainer**, and choose **Install plugin**.
+Choose **Codebase Video Explainer** and select **Install plugin**.
 
-Start a **new Codex chat/session** after installation so the bundled Skill is discovered.
+Start a new Codex session after installation.
 
-### 3. Use it
+## Use it
 
-You do not need to call scripts manually. Ask Codex normally, for example:
+Ask Codex naturally:
 
 ```text
 Analyze this GitHub repository and create a Chinese developer explainer video.
 ```
 
-or:
+Or:
 
 ```text
-Use the Codebase Video Explainer skill to explain this codebase for a new developer and render it with Remotion.
+Use Codebase Video Explainer to explain this codebase for a new developer and render the walkthrough with Remotion.
 ```
 
-Codex can then invoke the bundled Skill and its `scripts/`, `references/`, and `assets/` as needed.
+No manual script execution is required for normal use.
 
-### Plugin layout
+## What it does
+
+- **Analyze** — scan the repository, identify important modules, and trace representative execution paths.
+- **Explain** — build an evidence-backed architecture model and developer-oriented storyboard.
+- **Narrate** — generate natural Chinese narration and exact subtitle timing.
+- **Render** — produce a real Remotion video when available, with supported fallbacks when necessary.
+- **Verify** — check audio, subtitle, and video timing before delivery.
+
+## Output
+
+Generated work is kept under `.codebase-video/` in the target repository:
+
+```text
+.codebase-video/
+├── project-analysis.json
+├── architecture.mmd
+├── architecture.svg
+├── storyboard.json
+├── narration.zh-CN.md
+├── narration.mp3
+├── timings.json
+├── storyboard.timed.json
+├── subtitles.srt
+├── remotion/
+└── output.mp4
+```
+
+## Plugin layout
 
 ```text
 .agents/plugins/marketplace.json
-└── points to plugins/codebase-video-explainer/
 
 plugins/codebase-video-explainer/
 ├── plugin.json
@@ -86,159 +105,16 @@ plugins/codebase-video-explainer/
         └── assets/
 ```
 
-The top-level `README*.md` and `docs/media/` files are repository documentation only; they are not loaded as Skill context.
+The top-level README and `docs/media/` are repository documentation. The bundled Skill itself lives under `plugins/codebase-video-explainer/skills/codebase-video-explainer/`.
 
-### Update the installed marketplace snapshot
-
-When this repository changes:
+## Update
 
 ```bash
 codex plugin marketplace upgrade codebase-video-explainer
 ```
 
-Then restart Codex or start a new session before testing the updated plugin.
-
-## What it produces
-
-Generated artifacts live under `.codebase-video/` in the target project:
-
-- `scan.json`
-- `project-manifest.json`
-- `project-analysis.json`
-- `architecture.mmd` / optional `architecture.svg`
-- `storyboard.json`
-- `narration.zh-CN.md`
-- `narration.mp3`
-- `timings.json`
-- `storyboard.timed.json`
-- `subtitles.srt`
-- `remotion/`
-- `output.mp4`
-
-## Example prompts
-
-- `分析当前项目并生成一个 10 分钟左右的中文项目讲解视频。`
-- `把这个 GitHub 仓库做成一个适合新开发者 onboarding 的架构讲解视频。`
-- `重点讲清楚这个项目从 API 请求到数据库写入的完整链路，并生成视频。`
-
-## Design principles
-
-- Analyze before animating.
-- Prefer execution paths over file-by-file tours.
-- Keep architectural claims tied to source evidence.
-- Label inference and unknowns instead of hallucinating relationships.
-- Keep generated artifacts isolated from production code.
-- Use natural, scene-level narration instead of sentence-by-sentence audio splicing.
-- Treat narration audio as the master timeline.
-- Derive final subtitles from real TTS speech boundaries, never character-count timing when audio exists.
-- Prefer a real Remotion render locally; if local npm/browser access fails, use GitHub Actions Remotion rendering when permitted before falling back to FFmpeg.
-
-## Skill source layout
-
-```text
-codebase-video-explainer/  # editable source mirrored into plugins/.../skills/codebase-video-explainer/
-├── SKILL.md
-├── README.md
-├── README.zh-CN.md
-├── agents/
-│   └── openai.yaml
-├── assets/
-│   ├── github-actions/
-│   │   ├── natural-tts.yml
-│   │   └── remotion-render.yml
-│   └── remotion-template/
-├── references/
-│   ├── analysis-workflow.md
-│   ├── production-pipeline.md
-│   ├── quality-gates.md
-│   ├── storyboard-format.md
-│   └── video-style.md
-└── scripts/
-    ├── scan_codebase.py
-    ├── build_project_manifest.py
-    ├── build_subtitles.py
-    ├── build_tts_job.py
-    ├── synthesize_edge_tts.py
-    ├── prepare_remotion_job.py
-    ├── check_av_sync.py
-    ├── capture_screenshots.py
-    ├── render_mermaid.py
-    └── init_remotion_project.py
-```
-
-## V3 natural voice and exact subtitle pipeline
-
-The preferred Chinese narration path is Edge TTS with `zh-CN-YunyangNeural`:
-
-```bash
-python scripts/synthesize_edge_tts.py \
-  --storyboard /path/to/repo/.codebase-video/storyboard.json \
-  --output-dir /path/to/repo/.codebase-video
-```
-
-Default delivery settings:
-
-```text
-voice: zh-CN-YunyangNeural
-rate: -5%
-pitch: -2Hz
-scene gap: 0.7 s
-```
-
-The script synthesizes each scene as one continuous utterance and uses Edge TTS `SentenceBoundary` metadata to create exact SRT timing. It also writes a measured `storyboard.timed.json`, so the video timeline follows the real narration duration instead of forcing speech into estimated scene lengths.
-
-Do not use `build_subtitles.py` for final subtitles after TTS audio exists. That helper is only a draft/estimated timing fallback.
-
-## Free GitHub Actions fallback
-
-If the local execution environment cannot reach Edge TTS, the Skill includes a free GitHub Actions fallback:
-
-1. Generate `tts-jobs/current/scenes.json` with `scripts/build_tts_job.py`.
-2. Copy `assets/github-actions/natural-tts.yml` to `.github/workflows/codebase-video-natural-tts.yml` in an Actions-capable repository the user permits using.
-3. Run the workflow and download the `codebase-video-natural-tts` artifact.
-4. Reuse the returned `narration.mp3`, exact `subtitles.srt`, and `timings.json` in the video project.
-
-This path requires no Azure subscription or TTS API key.
-
-## Remotion and FFmpeg
-
-Use a dedicated Remotion Skill when available. Otherwise initialize the bundled fallback project:
-
-```bash
-python scripts/init_remotion_project.py --root /path/to/repo --force
-```
-
-The initializer prefers `storyboard.timed.json` when TTS timing exists. Try a real local Remotion render first.
-
-If local npm, DNS, browser download, or container limits block Remotion, prepare a portable GitHub Actions job:
-
-```bash
-python scripts/prepare_remotion_job.py \
-  --project /path/to/repo/.codebase-video/remotion \
-  --job-dir /path/to/actions-repo/render-jobs/current \
-  --composition CodebaseExplainer \
-  --audio-run-id 123456789 \
-  --audio-artifact-name codebase-video-natural-tts \
-  --force
-```
-
-When `--audio-run-id` is supplied, the prepared job omits the copied narration binary and the workflow downloads `narration.mp3` from that earlier Actions artifact. Then copy `assets/github-actions/remotion-render.yml` to `.github/workflows/codebase-video-remotion-render.yml` in a repository the user permits using. The workflow runs a preview still plus the real Remotion CLI render, verifies the MP4 with ffprobe, and uploads `codebase-video-remotion-render`.
-
-Use FFmpeg only if local and permitted GitHub Actions Remotion rendering are unavailable or fail. Do not claim the output was rendered by Remotion when FFmpeg was used.
-
-## Sync QA
-
-After rendering, verify the final timeline:
-
-```bash
-python scripts/check_av_sync.py \
-  --audio /path/to/repo/.codebase-video/narration.mp3 \
-  --subtitles /path/to/repo/.codebase-video/subtitles.srt \
-  --video /path/to/repo/.codebase-video/output.mp4
-```
-
-Also sample-check subtitle sync near the beginning, middle, and end of the video to catch cumulative drift.
+Then start a new Codex session.
 
 ## Safety
 
-The analysis helpers deliberately avoid secret-like files such as `.env`, private keys, and credential files. Never expose real credentials, tokens, cookies, passwords, or private key material in narration, screenshots, generated video assets, or logs.
+The Skill avoids exposing secret-like files and credentials in analysis, narration, screenshots, generated assets, and logs. Generated artifacts are kept separate from production source code whenever possible.
