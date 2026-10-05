@@ -1,0 +1,29 @@
+{
+  "name": "codebase-video-explainer",
+  "version": "0.1.0",
+  "description": "Turn software repositories into evidence-backed developer explainer videos.",
+  "repository": "https://github.com/ythc/codebase-video-explainer",
+  "homepage": "https://github.com/ythc/codebase-video-explainer",
+  "skills": "./skills/",
+  "keywords": [
+    "codebase",
+    "video",
+    "remotion",
+    "onboarding",
+    "architecture"
+  ],
+  "interface": {
+    "displayName": "Codebase Video Explainer",
+    "shortDescription": "Turn a codebase into an evidence-backed developer explainer video",
+    "longDescription": "Analyze a local or GitHub repository, trace verified execution paths, generate architecture visuals, natural Chinese narration and exact subtitles, then render a developer explainer video with Remotion.",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Analyze this repository and create a Chinese developer explainer video.",
+      "Explain this codebase for a new developer and render the walkthrough with Remotion."
+    ]
+  }
+}

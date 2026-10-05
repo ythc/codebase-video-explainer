@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codebase-video-explainer",
+  "version": "0.1.0",
+  "description": "Package the Codebase Video Explainer Agent Skill for Codex and ChatGPT. Analyze repositories, build evidence-backed architecture explanations, generate natural Chinese narration and exact subtitles, and render developer explainer videos with Remotion.",
+  "homepage": "https://github.com/ythc/codebase-video-explainer",
+  "repository": "https://github.com/ythc/codebase-video-explainer",
+  "keywords": [
+    "codex",
+    "agent-skill",
+    "codebase",
+    "video",
+    "remotion",
+    "developer-tools"
+  ]
+}

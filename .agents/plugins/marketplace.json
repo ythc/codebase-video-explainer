@@ -1,0 +1,23 @@
+{
+  "name": "codebase-video-explainer",
+  "interface": {
+    "displayName": "Codebase Video Explainer"
+  },
+  "plugins": [
+    {
+      "name": "codebase-video-explainer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codebase-video-explainer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

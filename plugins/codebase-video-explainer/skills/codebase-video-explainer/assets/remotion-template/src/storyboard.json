@@ -1,0 +1,17 @@
+{
+  "title": "Codebase Explainer",
+  "language": "zh-CN",
+  "audience": "Developer new to the project",
+  "target_duration_seconds": 30,
+  "scenes": [
+    {
+      "id": "placeholder",
+      "title": "Generate storyboard.json first",
+      "purpose": "This fallback confirms the Remotion project is wired correctly.",
+      "duration_seconds": 30,
+      "visual_type": "generic",
+      "visuals": ["Repository", "Architecture", "Execution path", "Key code"],
+      "evidence": []
+    }
+  ]
+}
