@@ -26,8 +26,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install edge-tts
 
-      - name: Ensure ffmpeg
+      - name: Install ffmpeg
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           ffmpeg -version | head -1
           ffprobe -version | head -1
 
