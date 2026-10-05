@@ -6,6 +6,15 @@ A reusable Agent Skill that turns an unfamiliar software repository into an evid
 
 It builds a mental model from real source code, traces representative execution paths, then generates architecture visuals, a storyboard, natural Chinese narration with exact TTS-derived subtitles, a Remotion project, and an MP4. Rendering prefers local Remotion, moves to GitHub Actions Remotion when local npm/browser access is blocked, and uses FFmpeg only as the final fallback.
 
+## Video demo
+
+[![Watch the Codebase Video Explainer demo](docs/media/codebase-video-explainer-preview.png)](docs/media/codebase-video-explainer-demo.mp4)
+
+This project can explain itself: the demo above was generated from this repository with the same analysis → TTS → exact subtitles → Remotion pipeline described below.
+
+[Watch or download the MP4](docs/media/codebase-video-explainer-demo.mp4)
+
+
 ## What it produces
 
 Generated artifacts live under `.codebase-video/` in the target project:
