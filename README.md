@@ -15,6 +15,28 @@ This project can explain itself: the demo above was generated from this reposito
 [Watch or download the MP4](docs/media/codebase-video-explainer-demo.mp4)
 
 
+## Install and use as a Skill
+
+This repository is the **source repository for one Agent Skill**. The distributable Skill bundle should contain only:
+
+```text
+SKILL.md
+agents/
+scripts/
+references/
+assets/
+```
+
+Repository-facing files such as this README and `docs/media/` are intentionally not part of the packaged Skill.
+
+Typical usage after installing the Skill:
+
+```text
+Analyze this GitHub repository and create a Chinese developer explainer video.
+```
+
+The Skill should auto-select its bundled workflow, scripts, references, and rendering fallbacks as needed.
+
 ## What it produces
 
 Generated artifacts live under `.codebase-video/` in the target project:
@@ -67,6 +89,7 @@ codebase-video-explainer/
 ├── references/
 │   ├── analysis-workflow.md
 │   ├── production-pipeline.md
+│   ├── quality-gates.md
 │   ├── storyboard-format.md
 │   └── video-style.md
 └── scripts/
