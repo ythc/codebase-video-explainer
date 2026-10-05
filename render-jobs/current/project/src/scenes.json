@@ -1,0 +1,11 @@
+{
+  "totalSeconds": 267.116,
+  "scenes": [
+    {"index":0,"start":0.0,"end":40.516,"kicker":"CODEX PLUGIN","title":"最终形态：可安装到 Codex 的 Skill-only Plugin","subtitle":"Plugin 负责安装 / 分发 / 发现 · Skill 负责实际工作流","kind":"positioning","evidence":["plugins/codebase-video-explainer/.codex-plugin/plugin.json","plugins/codebase-video-explainer/skills/codebase-video-explainer/SKILL.md"]},
+    {"index":1,"start":40.516,"end":89.936,"kicker":"INSTALL","title":"安装方式：先加 Marketplace，再安装 Plugin","subtitle":"marketplace add → /plugins → Install plugin → 新会话","kind":"install","evidence":[".agents/plugins/marketplace.json","README.zh-CN.md"]},
+    {"index":2,"start":89.936,"end":141.18,"kicker":"PLUGIN LAYOUT","title":"Plugin 里面到底装了什么","subtitle":"Manifest + Skill + scripts / references / assets","kind":"structure","evidence":["plugins/codebase-video-explainer/plugin.json","plugins/codebase-video-explainer/skills/codebase-video-explainer/"]},
+    {"index":3,"start":141.18,"end":183.952,"kicker":"SKILL WORKFLOW","title":"安装以后，Codex 会怎样工作","subtitle":"Analyze → Explain → TTS → Exact subtitles","kind":"workflow","evidence":["SKILL.md","references/analysis-workflow.md","scripts/synthesize_edge_tts.py"]},
+    {"index":4,"start":183.952,"end":229.388,"kicker":"REAL REMOTION","title":"视频渲染：优先真 Remotion","subtitle":"Local Remotion → GitHub Actions Remotion → FFmpeg fallback","kind":"render","evidence":["scripts/prepare_remotion_job.py","assets/github-actions/remotion-render.yml","references/quality-gates.md"]},
+    {"index":5,"start":229.388,"end":267.116,"kicker":"RECAP","title":"一句话记住这个项目","subtitle":"可安装到 Codex 的 Skill-only Plugin","kind":"recap","evidence":["Codex Plugin","Agent Skill","Remotion"]}
+  ]
+}
