@@ -1,0 +1,20 @@
+{
+  "name": "codebase-video-explainer-output",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts CodebaseExplainer out/output.mp4 --codec=h264",
+    "render:still": "remotion still src/index.ts CodebaseExplainer out/preview.png --frame=90"
+  },
+  "dependencies": {
+    "@remotion/cli": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "remotion": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
