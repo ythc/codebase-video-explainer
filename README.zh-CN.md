@@ -15,6 +15,28 @@
 [观看或下载 MP4](docs/media/codebase-video-explainer-demo.mp4)
 
 
+## 作为 Skill 安装和使用
+
+这个仓库是**一个 Agent Skill 的源码仓库**。真正用于安装/上传的 Skill 包只应包含：
+
+```text
+SKILL.md
+agents/
+scripts/
+references/
+assets/
+```
+
+README、`docs/media/` 演示视频等面向 GitHub 访客的内容，不进入最终 Skill 包，避免占用 Agent 上下文。
+
+安装后，典型用法就是直接在 ChatGPT 中提出类似请求：
+
+```text
+分析这个 GitHub 项目，并生成一支中文开发者讲解视频。
+```
+
+Skill 会根据环境自动选择它自带的分析脚本、参考规范、TTS 和 Remotion / GitHub Actions fallback。
+
 ## 典型产物
 
 默认输出到目标项目的 `.codebase-video/`：
@@ -214,6 +236,7 @@ codebase-video-explainer/
 ├── references/
 │   ├── analysis-workflow.md
 │   ├── production-pipeline.md
+│   ├── quality-gates.md
 │   ├── storyboard-format.md
 │   └── video-style.md
 └── scripts/
