@@ -1,0 +1,6 @@
+{
+  "name":"codebase-video-explainer-plugin-homepage-video",
+  "private":true,
+  "dependencies":{"@remotion/cli":"latest","remotion":"latest","react":"latest","react-dom":"latest"},
+  "devDependencies":{"@types/react":"latest","@types/react-dom":"latest","typescript":"latest"}
+}
