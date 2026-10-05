@@ -1,3 +1,3 @@
 interface:
   display_name: "Codebase Video Explainer"
-  short_description: "Turn a codebase into an evidence-backed developer explainer video"
+  short_description: "Agent Skill that turns codebases into evidence-backed developer explainer videos"
