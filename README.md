@@ -1,5 +1,7 @@
 # Codebase Video Explainer
 
+**English** | [简体中文](README.zh-CN.md)
+
 A reusable Agent Skill that turns an unfamiliar software repository into an evidence-backed developer explainer video.
 
 It first builds a mental model from real source code, traces representative execution paths, then generates an architecture diagram, storyboard, Chinese narration/subtitles by default, a Remotion project, and an MP4 when the environment can render it.
