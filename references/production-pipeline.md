@@ -155,9 +155,66 @@ npm run render
 
 Tailor the fallback template to the actual architecture, code excerpts, screenshots, and execution paths before final delivery.
 
-## 7. FFmpeg fallback when Remotion is unavailable
+## 7. Prefer local Remotion rendering
 
-If npm/Remotion cannot be installed or launched, still produce a usable MP4 when practical:
+When npm registry access and the browser runtime work locally, render in the generated project:
+
+```bash
+cd <repo>/.codebase-video/remotion
+npm install
+npx tsc --noEmit
+npm run render:still
+npm run render
+```
+
+Render a preview still before the full MP4. Inspect text fit, Chinese fonts, subtitle safe area, and scene composition. Verify the final MP4 with ffprobe.
+
+## 8. GitHub Actions Remotion fallback
+
+Use this before FFmpeg when the Remotion project is valid but the current environment cannot reach npm, cannot download or launch Chromium, or has a strict local execution limit. This path performs a real Remotion render on a GitHub-hosted runner.
+
+Prepare a portable render job in a repository the user permits using:
+
+```bash
+python <skill-dir>/scripts/prepare_remotion_job.py \
+  --project <repo>/.codebase-video/remotion \
+  --job-dir <runner-repo>/render-jobs/current \
+  --composition CodebaseExplainer \
+  --audio-run-id <optional-tts-workflow-run-id> \
+  --audio-artifact-name codebase-video-natural-tts \
+  --force
+```
+
+The helper copies the Remotion project while excluding `node_modules`, prior `out/` files, caches, and Git metadata. It writes `render-job.json` with the composition, entrypoint, preview frame, concurrency, output name, and optional prior TTS artifact metadata.
+
+If `--audio-run-id` is provided, the helper removes the copied `public/narration.mp3`; GitHub Actions will download that file from the previous workflow artifact instead of committing the narration binary. If the narration already belongs in the render repository, omit the artifact options.
+
+Copy the bundled workflow:
+
+```text
+<skill-dir>/assets/github-actions/remotion-render.yml
+    -> <runner-repo>/.github/workflows/codebase-video-remotion-render.yml
+```
+
+The workflow then:
+
+1. checks out the render job;
+2. installs Node 22, Noto CJK fonts, and ffmpeg;
+3. optionally downloads narration from a prior Actions artifact;
+4. runs `npm ci` when a lockfile exists, otherwise `npm install`;
+5. runs `npx tsc --noEmit` when `tsconfig.json` exists;
+6. renders `out/preview.png` with `remotion still`;
+7. renders the full H.264/yuv420p MP4 with the real `remotion render` command;
+8. writes `out/ffprobe.json`; and
+9. uploads the MP4, preview image, and ffprobe report as the `codebase-video-remotion-render` artifact by default.
+
+For a roughly 8-minute 1080p/30fps technical explainer, one successful GitHub-hosted run took about 8–10 minutes end to end. Treat this only as an observed reference, not a guarantee.
+
+Keep the workflow run URL or run ID as provenance. This is a genuine Remotion render: ffmpeg is used only for media support and verification, while Remotion renders the video frames. Do not silently commit the workflow or render job into the user's repository without permission.
+
+## 9. FFmpeg fallback when Remotion is unavailable
+
+Use FFmpeg only when both local Remotion and GitHub Actions Remotion are unavailable, disallowed, or unsuitable:
 
 1. Render or prepare one static/animated visual for each timed scene.
 2. Use `timings.json` / `storyboard.timed.json` for scene lengths.
@@ -168,7 +225,7 @@ If npm/Remotion cannot be installed or launched, still produce a usable MP4 when
 
 Do not reuse an MP4 that already has obsolete subtitles burned in. Re-render from clean scene visuals when subtitle timing changes.
 
-## 8. Final synchronization verification
+## 10. Final synchronization verification
 
 Run:
 
