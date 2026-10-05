@@ -15,8 +15,12 @@ Create work products under `.codebase-video/` in the target project unless the u
 - `project-manifest.json` — technology, package, script, entrypoint, and dependency summary from `scripts/build_project_manifest.py`.
 - `project-analysis.json` — evidence-backed mental model, modules, important files, external systems, and execution paths.
 - `architecture.mmd` — Mermaid architecture diagram.
+- `architecture.svg` — rendered diagram when Mermaid rendering is available.
+- `screenshots/` — optional UI screenshots captured from a running app.
 - `storyboard.json` — scene-by-scene video specification following `references/storyboard-format.md`.
 - `narration.zh-CN.md` — Chinese narration and subtitle copy by default.
+- `subtitles.srt` — deterministic subtitle track derived from scene timing.
+- `narration.mp3` — optional TTS output when a supported TTS provider is available.
 - `remotion/` — generated Remotion project.
 - `output.mp4` — final video when rendering succeeds.
 
@@ -61,6 +65,7 @@ Do not modify production application code unless the user explicitly asks. Keep 
    - Prefer a compact Mermaid flowchart or sequence diagram.
    - Show system boundaries and actual verified relationships.
    - Avoid one node per file. Group files into meaningful modules or services.
+   - When Mermaid rendering is available, run `scripts/render_mermaid.py` to create `.codebase-video/architecture.svg`.
 
 6. Design the video before implementing it.
    - Follow `references/storyboard-format.md` and `references/video-style.md`.
@@ -74,26 +79,33 @@ Do not modify production application code unless the user explicitly asks. Keep 
    - Every scene must state its teaching purpose, evidence source, narration, visuals, animation, and approximate duration.
    - Keep on-screen text short.
    - Never present an unverified inference as fact in narration.
+   - Run `scripts/build_subtitles.py` to create `.codebase-video/subtitles.srt`.
 
-8. Generate the Remotion implementation.
+8. Collect optional visual assets.
+   - Read `references/production-pipeline.md`.
+   - Capture UI screenshots only when they clarify the explanation and the target app can be run safely.
+   - Use `scripts/capture_screenshots.py` with a reviewed screenshot plan.
+   - Do not install browser dependencies into the target application unless the user explicitly asks.
+
+9. Generate the Remotion implementation.
    - If a Remotion-focused Skill is available in the environment, use it for current Remotion conventions, animation patterns, media handling, preview, and rendering.
-   - Otherwise create a standard Remotion project under `.codebase-video/remotion/` using the currently supported Remotion setup for the environment.
+   - Otherwise run `scripts/init_remotion_project.py --root <repo> --force` to create a fallback Remotion project under `.codebase-video/remotion/`, then tailor it to the real storyboard.
    - Keep architecture/module visuals as reusable components rather than a single giant scene.
    - Use syntax-highlighted code excerpts copied from the repository; do not retype code from memory.
    - Keep long code blocks out of the video. Highlight only the lines needed to explain the current concept.
 
-9. Narration and subtitles.
+10. Narration and subtitles.
    - Generate Chinese narration by default.
    - Generate timed subtitles from the same narration text.
-   - If a TTS capability is available, synthesize narration audio and align scenes/subtitles to the audio duration.
+   - If a TTS capability is available, synthesize narration audio and align scenes/subtitles to the audio duration. The bundled `scripts/synthesize_edge_tts.py` is an optional fallback when `edge-tts` is installed.
    - If no TTS capability is available, still complete the narration, subtitles, and renderable visual project; state the missing audio dependency instead of fabricating an audio file.
 
-10. Preview and verify.
+11. Preview and verify.
     - Open or run Remotion Studio when available.
     - Verify that all compositions load, text fits, code is legible, animations do not overlap, assets resolve, and the full timeline renders without errors.
     - Fix render/runtime errors before final export.
 
-11. Render.
+12. Render.
     - Default: 1920×1080, 30 FPS, H.264 MP4 unless the user requests otherwise.
     - Render to `.codebase-video/output.mp4`.
     - If final rendering is impossible in the current environment, deliver the complete Remotion project plus the exact render command and explain the missing prerequisite.
@@ -128,3 +140,4 @@ Before calling the task complete, verify all of the following:
 - Read `references/analysis-workflow.md` for repository analysis and evidence requirements.
 - Read `references/storyboard-format.md` before creating `storyboard.json`.
 - Read `references/video-style.md` before implementing Remotion scenes.
+- Read `references/production-pipeline.md` for architecture rendering, screenshots, subtitles, optional TTS, Remotion initialization, and final verification.
