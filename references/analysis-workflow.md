@@ -1,5 +1,16 @@
 # Codebase analysis workflow
 
+## Table of contents
+
+- [Goal](#goal)
+- [Pass 1: Orientation](#pass-1-orientation)
+- [Pass 2: Module boundaries](#pass-2-module-boundaries)
+- [Pass 3: Representative execution paths](#pass-3-representative-execution-paths)
+- [Evidence model](#evidence-model)
+- [Important-file selection](#important-file-selection)
+- [Monorepos](#monorepos)
+- [Security and privacy](#security-and-privacy)
+
 Use this reference while constructing `project-analysis.json`.
 
 ## Goal
