@@ -1,0 +1,200 @@
+name: Generate natural Chinese TTS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/natural-tts.yml"
+      - "tts-jobs/warp-masque-natural/**"
+
+permissions:
+  contents: read
+
+jobs:
+  synthesize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install TTS dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install edge-tts
+
+      - name: Ensure ffmpeg
+        run: |
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      - name: Generate scene audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tts-output/raw tts-output/normalized
+          python - <<'PY'
+          import asyncio, json
+          from pathlib import Path
+          import edge_tts
+
+          src = Path("tts-jobs/warp-masque-natural/scenes.json")
+          data = json.loads(src.read_text(encoding="utf-8"))
+          voice = data.get("voice", "zh-CN-YunyangNeural")
+          rate = data.get("rate", "-5%")
+          pitch = data.get("pitch", "-2Hz")
+          volume = data.get("volume", "+0%")
+
+          async def main():
+              for scene in data["scenes"]:
+                  idx = int(scene["index"])
+                  text = scene["text"].strip()
+                  out = Path("tts-output/raw") / f"{idx:02d}.mp3"
+                  print(f"Synthesizing scene {idx}: {scene['title']}")
+                  communicate = edge_tts.Communicate(
+                      text=text,
+                      voice=voice,
+                      rate=rate,
+                      volume=volume,
+                      pitch=pitch,
+                  )
+                  await communicate.save(str(out))
+
+          asyncio.run(main())
+          PY
+
+      - name: Normalize loudness
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in tts-output/raw/*.mp3; do
+            b=$(basename "$f")
+            ffmpeg -y -hide_banner -loglevel error -i "$f"               -af "loudnorm=I=-16:TP=-1.5:LRA=11"               -ar 48000 -ac 2 -c:a libmp3lame -b:a 160k               "tts-output/normalized/$b"
+          done
+
+      - name: Build actual timing, subtitles and full narration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, re, subprocess
+          from pathlib import Path
+
+          root = Path("tts-output")
+          data = json.loads(Path("tts-jobs/warp-masque-natural/scenes.json").read_text(encoding="utf-8"))
+
+          def duration(path: Path) -> float:
+              out = subprocess.check_output([
+                  "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                  "-of", "default=noprint_wrappers=1:nokey=1", str(path)
+              ], text=True).strip()
+              return float(out)
+
+          def ts(seconds: float) -> str:
+              ms = max(0, round(seconds * 1000))
+              h, ms = divmod(ms, 3600000)
+              m, ms = divmod(ms, 60000)
+              s, ms = divmod(ms, 1000)
+              return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+          def chunks(text: str, limit: int = 28):
+              parts = [x.strip() for x in re.split(r"(?<=[。！？；：!?;:])", text) if x.strip()]
+              out, cur = [], ""
+              for p in parts:
+                  if len(cur) + len(p) <= limit:
+                      cur += p
+                  else:
+                      if cur:
+                          out.append(cur)
+                      while len(p) > limit:
+                          out.append(p[:limit])
+                          p = p[limit:]
+                      cur = p
+              if cur:
+                  out.append(cur)
+              return out
+
+          cursor = 0.0
+          timings = []
+          srt = []
+          cue = 1
+          silence = 0.70
+          for scene in data["scenes"]:
+              idx = int(scene["index"])
+              audio = root / "normalized" / f"{idx:02d}.mp3"
+              d = duration(audio)
+              start = cursor
+              end = start + d
+              timings.append({
+                  "index": idx,
+                  "title": scene["title"],
+                  "audio": str(audio),
+                  "start_seconds": round(start, 3),
+                  "duration_seconds": round(d, 3),
+                  "end_seconds": round(end, 3),
+              })
+
+              parts = chunks(scene["text"])
+              weights = [max(1, len(x)) for x in parts]
+              total = sum(weights) or 1
+              local = start
+              for i, part in enumerate(parts):
+                  if i == len(parts) - 1:
+                      part_end = end
+                  else:
+                      part_end = local + d * weights[i] / total
+                  srt.extend([
+                      str(cue),
+                      f"{ts(local)} --> {ts(part_end)}",
+                      part,
+                      "",
+                  ])
+                  cue += 1
+                  local = part_end
+              cursor = end + silence
+
+          (root / "timings.json").write_text(
+              json.dumps({"scene_gap_seconds": silence, "scenes": timings}, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          (root / "subtitles.srt").write_text("\n".join(srt), encoding="utf-8")
+          PY
+
+          count=$(ls tts-output/normalized/*.mp3 | wc -l)
+          i=0
+          mkdir -p tts-output/padded
+          for f in tts-output/normalized/*.mp3; do
+            b=$(basename "$f" .mp3)
+            i=$((i+1))
+            if [ "$i" -lt "$count" ]; then
+              ffmpeg -y -hide_banner -loglevel error                 -i "$f" -f lavfi -t 0.7 -i anullsrc=r=48000:cl=stereo                 -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[out]"                 -map "[out]" -c:a libmp3lame -b:a 160k                 "tts-output/padded/${b}.mp3"
+            else
+              cp "$f" "tts-output/padded/${b}.mp3"
+            fi
+          done
+
+          : > tts-output/concat.txt
+          for f in tts-output/padded/*.mp3; do
+            printf "file '%s'\n" "$(realpath "$f")" >> tts-output/concat.txt
+          done
+          ffmpeg -y -hide_banner -loglevel error -f concat -safe 0             -i tts-output/concat.txt -c:a libmp3lame -b:a 160k             tts-output/narration-natural.mp3
+
+      - name: Show result
+        run: |
+          ls -lh tts-output/narration-natural.mp3
+          cat tts-output/timings.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: warp-masque-natural-tts
+          path: |
+            tts-output/narration-natural.mp3
+            tts-output/subtitles.srt
+            tts-output/timings.json
+            tts-output/normalized/*.mp3
+          retention-days: 7
+          if-no-files-found: error
