@@ -6,6 +6,15 @@
 
 它会先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕和 Remotion 工程。渲染优先本地 Remotion；如果本地 npm / 浏览器受限，则优先转到 GitHub Actions 真 Remotion；只有两者都不可用时才用 FFmpeg 保底。
 
+## 项目讲解视频
+
+[![观看 Codebase Video Explainer 项目讲解视频](docs/media/codebase-video-explainer-preview.png)](docs/media/codebase-video-explainer-demo.mp4)
+
+上面这支视频就是用本项目自身生成的：分析当前仓库 → 自然中文 TTS → 精确字幕 → GitHub Actions 真 Remotion 渲染。
+
+[观看或下载 MP4](docs/media/codebase-video-explainer-demo.mp4)
+
+
 ## 典型产物
 
 默认输出到目标项目的 `.codebase-video/`：
