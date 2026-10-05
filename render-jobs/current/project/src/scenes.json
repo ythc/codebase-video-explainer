@@ -1,0 +1,11 @@
+{
+  "totalSeconds": 274.604,
+  "scenes": [
+    {"index":0,"start":0.0,"end":38.476,"speechEnd":37.776,"kicker":"FROM REPO TO VIDEO","title":"一个 GitHub 地址，变成一支可看的项目讲解视频","subtitle":"从仓库到开发者讲解视频的自动化编译流水线","kind":"overview","items":["GitHub URL","Evidence-backed analysis","Natural Chinese TTS","Remotion MP4"],"evidence":["SKILL.md","README.zh-CN.md"]},
+    {"index":1,"start":38.476,"end":88.712,"speechEnd":88.012,"kicker":"ANALYZE FIRST","title":"第一层：先分析，后动画","subtitle":"先建立可验证的心智模型，再开始做画面","kind":"analysis","items":["scan_codebase.py","build_project_manifest.py","project-analysis.json","architecture.mmd"],"evidence":["scripts/scan_codebase.py","scripts/build_project_manifest.py","references/analysis-workflow.md"]},
+    {"index":2,"start":88.712,"end":140.916,"speechEnd":140.216,"kicker":"NATURAL VOICE + EXACT SUBS","title":"第二层：自然旁白和不会漂的字幕","subtitle":"整场景 TTS + SentenceBoundary 真实时间戳","kind":"tts","items":["storyboard.json","Edge TTS","SentenceBoundary","storyboard.timed.json","subtitles.srt"],"evidence":["scripts/synthesize_edge_tts.py","assets/github-actions/natural-tts.yml"]},
+    {"index":3,"start":140.916,"end":195.976,"speechEnd":195.276,"kicker":"REAL REMOTION","title":"第三层：本地 Remotion，不行就上 GitHub Actions","subtitle":"本地失败不等于放弃 Remotion","kind":"render","items":["Local Remotion","npm / Chromium blocker","prepare_remotion_job.py","GitHub Actions","remotion render"],"evidence":["scripts/init_remotion_project.py","scripts/prepare_remotion_job.py","assets/github-actions/remotion-render.yml"]},
+    {"index":4,"start":195.976,"end":233.468,"speechEnd":232.768,"kicker":"QUALITY GATES","title":"第四层：不是生成完就算结束","subtitle":"音频、字幕、视频必须落在同一条时间线上","kind":"qa","items":["Audio duration","Subtitle tail","Video duration","Begin / Middle / End"],"evidence":["scripts/check_av_sync.py","SKILL.md quality gates"]},
+    {"index":5,"start":233.468,"end":274.604,"speechEnd":274.604,"kicker":"THE MENTAL MODEL","title":"最终心智模型：一个面向代码仓库的视频编译器","subtitle":"Analyze → Explain → Speak → Render → Verify","kind":"recap","items":["Analyze","Explain","Speak","Render","Verify"],"evidence":["SKILL.md","README.md"]}
+  ]
+}
