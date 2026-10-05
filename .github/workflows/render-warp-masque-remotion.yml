@@ -1,0 +1,75 @@
+name: Render warp-masque with Remotion
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/render-warp-masque-remotion.yml"
+      - "render-jobs/warp-masque-remotion/**"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install Chinese fonts and ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk ffmpeg
+          fc-cache -f
+
+      - name: Download exact natural TTS artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: warp-masque-natural-tts
+          path: ${{ runner.temp }}/voice
+          run-id: 37326190479
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare narration
+        run: |
+          mkdir -p render-jobs/warp-masque-remotion/public
+          cp "${{ runner.temp }}/voice/narration-natural.mp3" render-jobs/warp-masque-remotion/public/narration.mp3
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 render-jobs/warp-masque-remotion/public/narration.mp3
+
+      - name: Install Remotion
+        working-directory: render-jobs/warp-masque-remotion
+        run: npm install
+
+      - name: Typecheck
+        working-directory: render-jobs/warp-masque-remotion
+        run: npx tsc --noEmit
+
+      - name: Render preview still with Remotion
+        working-directory: render-jobs/warp-masque-remotion
+        run: npm run still
+
+      - name: Render full MP4 with Remotion
+        working-directory: render-jobs/warp-masque-remotion
+        run: npm run render
+
+      - name: Verify MP4
+        working-directory: render-jobs/warp-masque-remotion
+        run: |
+          ffprobe -v error             -show_entries stream=codec_name,width,height,r_frame_rate             -show_entries format=duration,size             -of json out/warp-masque-remotion.mp4
+
+      - name: Upload Remotion render
+        uses: actions/upload-artifact@v6
+        with:
+          name: warp-masque-remotion-render
+          path: |
+            render-jobs/warp-masque-remotion/out/warp-masque-remotion.mp4
+            render-jobs/warp-masque-remotion/out/preview.png
+          retention-days: 7
+          if-no-files-found: error
