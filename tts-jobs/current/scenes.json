@@ -1,0 +1,14 @@
+{
+  "voice": "zh-CN-YunyangNeural",
+  "rate": "-5%",
+  "pitch": "-2Hz",
+  "volume": "+0%",
+  "scenes": [
+    {"index":0,"id":"hook","title":"一个 GitHub 地址，变成一支可看的项目讲解视频","text":"这个项目解决的是一个很具体的问题：面对一个陌生的 GitHub 仓库，怎样不靠人工翻目录，就把它整理成一支真正能帮助开发者理解项目的视频。它不是简单把 README 念一遍，而是先扫描代码、建立有源码证据支撑的心智模型，再把架构、执行链路、关键代码和修改入口编排成分镜。最后生成自然中文旁白、精确字幕，再用 Remotion 渲染成视频。你可以把它理解成一条从代码仓库到开发者讲解视频的自动化编译流水线。"},
+    {"index":1,"id":"analysis","title":"第一层：先分析，后动画","text":"整条流水线的第一层不是视频，而是分析。scan codebase.py 会先做一个确定性的仓库清单，并跳过 node modules、构建目录、缓存和敏感文件。build project manifest.py 再从 package、pyproject、go mod、Cargo 这些常见清单里提取技术栈和入口线索。然后才进入真正的源码阅读：从入口、路由、核心模块、存储、鉴权和测试里，追踪一到三条真实执行路径。最后得到 project analysis.json 和 architecture.mmd。这个顺序很重要，因为项目要求所有重要架构结论都要能回到真实文件和符号，而不是只根据目录名字猜。"},
+    {"index":2,"id":"storytts","title":"第二层：自然旁白和不会漂的字幕","text":"分析完成以后，项目会先写 storyboard，再写适合口语的中文旁白。这里有两个经过实战验证的重要规则。第一，不要把每一句话拆成独立 TTS 再拼起来，否则声音会一顿一顿。项目现在按场景整段生成语音。第二，最终字幕不能按照字符数平均分时间，因为英文缩写、数字和代码名的发音时长完全不同。synthesize edge tts.py 会直接读取 Edge TTS 的 SentenceBoundary 事件，用真实 offset 和 duration 生成字幕，同时测量每个场景的真实音频时长，写进 storyboard.timed.json。最终画面跟着声音走，而不是让声音硬塞进原先估算的时间。"},
+    {"index":3,"id":"render","title":"第三层：本地 Remotion，不行就上 GitHub Actions","text":"视频实现层优先使用 Remotion。init remotion project.py 会把真实时间轴、旁白、字幕和架构素材带进 Remotion 工程。正常情况下，直接在本地 npm install，然后运行 remotion render。但很多受限容器的问题不是代码，而是访问不了 npm registry，或者无法下载 Chromium。这个项目现在不会因此立刻退回静态 FFmpeg。prepare remotion job.py 可以把工程整理成一个可移植的 render job，再交给 GitHub Actions。远端 runner 会安装 Node、中文字体和 ffmpeg，先做 TypeScript 检查，再渲染 preview still，最后真正执行 remotion render，并用 ffprobe 验证输出。只有这个步骤成功，成片才会被称为 Remotion 渲染。"},
+    {"index":4,"id":"qa","title":"第四层：不是生成完就算结束","text":"项目还有一层很容易被忽略的质量控制。check av sync.py 会用 ffprobe 检查旁白总时长、视频总时长，以及最后一条字幕结束的位置。如果视频比音频多出几十秒，或者字幕尾部明显提前结束，它会直接报错。除此之外，流程还要求人工抽查开头、中段和结尾，避免出现累计漂移。也就是说，这个 Skill 的目标不是只生成一堆文件，而是把自然语音、字幕、画面和渲染来源都纳入同一条可验证的时间线。"},
+    {"index":5,"id":"recap","title":"最终心智模型：一个面向代码仓库的视频编译器","text":"把整个项目压缩成一句话，它就是一个面向代码仓库的视频编译器。输入是本地项目或者 GitHub 地址，中间经过源码扫描、证据化分析、分镜、自然中文 TTS、精确字幕和 Remotion 动画，输出是一支适合新开发者 onboarding 的讲解视频。它最大的特点不是某一个脚本，而是把分析、叙事、语音、渲染和质量检查连接成了一条可复用流程。如果你想快速理解一个陌生项目，或者给自己的开源仓库补一支项目介绍视频，这就是它最直接的使用场景。"}
+  ]
+}
