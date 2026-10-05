@@ -15,27 +15,88 @@
 [观看或下载 MP4](docs/media/codebase-video-explainer-demo.mp4)
 
 
-## 作为 Skill 安装和使用
+## 安装到 Codex
 
-这个仓库是**一个 Agent Skill 的源码仓库**。真正用于安装/上传的 Skill 包只应包含：
+这个仓库现在的最终分发形态是：**一个 Codex Plugin，里面打包一个 Agent Skill**。Codex 安装的是 Plugin，安装后由 Plugin 暴露其中的 `codebase-video-explainer` Skill 供 Codex 自动调用。
 
-```text
-SKILL.md
-agents/
-scripts/
-references/
-assets/
+### 1. 把这个 GitHub 仓库加入 Codex Plugin Marketplace
+
+先在已经安装 Codex 的终端执行：
+
+```bash
+codex plugin marketplace add ythc/codebase-video-explainer --ref main
 ```
 
-README、`docs/media/` 演示视频等面向 GitHub 访客的内容，不进入最终 Skill 包，避免占用 Agent 上下文。
+检查是否已经加入：
 
-安装后，典型用法就是直接在 ChatGPT 中提出类似请求：
+```bash
+codex plugin marketplace list
+```
+
+### 2. 在 Codex 中安装 Plugin
+
+启动 Codex：
+
+```bash
+codex
+```
+
+进入插件浏览器：
+
+```text
+/plugins
+```
+
+选择 `codebase-video-explainer` marketplace，打开 **Codebase Video Explainer**，点击 **Install plugin**。
+
+安装完成后请**新建一个 Codex 会话**，让 Codex 重新发现这个 Plugin 中的 Skill。
+
+### 3. 直接让 Codex 调用
+
+安装后不需要手工运行仓库里的 Python 脚本。直接在 Codex 里说：
 
 ```text
 分析这个 GitHub 项目，并生成一支中文开发者讲解视频。
 ```
 
-Skill 会根据环境自动选择它自带的分析脚本、参考规范、TTS 和 Remotion / GitHub Actions fallback。
+或者明确指定：
+
+```text
+使用 Codebase Video Explainer skill 分析这个代码库，给新开发者讲解，并用 Remotion 生成视频。
+```
+
+Codex 会根据任务需要自动加载这个 Plugin 中的 Skill，并使用它自带的 `scripts/`、`references/` 和 `assets/`。
+
+### Plugin 目录结构
+
+```text
+.agents/plugins/marketplace.json
+└── 指向 plugins/codebase-video-explainer/
+
+plugins/codebase-video-explainer/
+├── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
+└── skills/
+    └── codebase-video-explainer/
+        ├── SKILL.md
+        ├── agents/
+        ├── scripts/
+        ├── references/
+        └── assets/
+```
+
+仓库顶层的 `README*.md` 和 `docs/media/` 只用于 GitHub 项目展示，不会作为 Skill 上下文加载。
+
+### 更新已安装的 Marketplace
+
+仓库有新版本后执行：
+
+```bash
+codex plugin marketplace upgrade codebase-video-explainer
+```
+
+然后重启 Codex 或新建会话，再测试新版 Plugin。
 
 ## 典型产物
 
