@@ -2,9 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-A reusable Agent Skill that turns an unfamiliar software repository into an evidence-backed developer explainer video.
+**Codebase Video Explainer is an Agent Skill for ChatGPT.** It teaches ChatGPT how to turn an unfamiliar software repository into an evidence-backed developer explainer video.
 
-It builds a mental model from real source code, traces representative execution paths, then generates architecture visuals, a storyboard, natural Chinese narration with exact TTS-derived subtitles, a Remotion project, and an MP4. Rendering prefers local Remotion, moves to GitHub Actions Remotion when local npm/browser access is blocked, and uses FFmpeg only as the final fallback.
+The Skill orchestrates a repeatable workflow: build a mental model from real source code, trace representative execution paths, generate architecture visuals and a storyboard, create natural Chinese narration with exact TTS-derived subtitles, then render the final MP4 with Remotion. Rendering prefers local Remotion, moves to GitHub Actions Remotion when local npm/browser access is blocked, and uses FFmpeg only as the final fallback.
 
 ## Video demo
 
