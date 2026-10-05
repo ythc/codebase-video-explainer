@@ -4,7 +4,7 @@
 
 一个可复用的 Agent Skill：把陌生的软件项目转换成**有源码证据支撑的开发者讲解视频**。
 
-它会先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕、Remotion 工程，并在 Remotion 环境不可用时允许使用 FFmpeg 保底生成 MP4。
+它会先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕和 Remotion 工程。渲染优先本地 Remotion；如果本地 npm / 浏览器受限，则优先转到 GitHub Actions 真 Remotion；只有两者都不可用时才用 FFmpeg 保底。
 
 ## 典型产物
 
@@ -40,7 +40,7 @@
 - **真实音频是最终时间轴。**
 - **有 TTS 时禁止再按字符数估字幕时间。**
 - **最终字幕优先使用 Edge TTS `SentenceBoundary`。**
-- **优先 Remotion，Remotion 不可用时可以使用 FFmpeg fallback。**
+- **优先真正的 Remotion 渲染；本地 npm / 浏览器受限时，先尝试用户允许的 GitHub Actions Remotion，再使用 FFmpeg fallback。**
 - **默认不使用 `espeak` / `pyttsx3` 这类机械音作为正式成片旁白。**
 
 ## V3：自然中文旁白 + 精确字幕
@@ -128,6 +128,36 @@ python scripts/init_remotion_project.py \
 
 当 `storyboard.timed.json` 存在时，初始化脚本会优先使用真实 TTS 时长，而不是最初估算的 `storyboard.json`。
 
+## GitHub Actions 真 Remotion fallback
+
+如果当前容器无法访问 npm registry、无法下载 Remotion 浏览器，或者本地渲染受执行时限影响，不要立刻降级成 FFmpeg。只要用户允许使用一个支持 Actions 的仓库，就先把完成后的 Remotion 工程准备成可移植渲染任务：
+
+```bash
+python scripts/prepare_remotion_job.py \
+  --project /path/to/repo/.codebase-video/remotion \
+  --job-dir /path/to/actions-repo/render-jobs/current \
+  --composition CodebaseExplainer \
+  --audio-run-id 123456789 \
+  --audio-artifact-name codebase-video-natural-tts \
+  --force
+```
+
+然后把：
+
+```text
+assets/github-actions/remotion-render.yml
+```
+
+复制为：
+
+```text
+.github/workflows/codebase-video-remotion-render.yml
+```
+
+如果提供 `--audio-run-id`，准备脚本会从 render job 中移除已复制的 `public/narration.mp3`，由 Actions 从前一次 TTS artifact 下载旁白，避免为了渲染提交音频二进制。这个 workflow 会实际执行：`npm install → TypeScript 检查 → Remotion still → Remotion render → ffprobe 验证 → artifact 上传`。最终 artifact 名称默认为 `codebase-video-remotion-render`，包含真正由 Remotion CLI 生成的 MP4、`preview.png` 和 `ffprobe.json`。
+
+只有 Remotion CLI 的完整渲染步骤成功时，才能把成片称为“Remotion 渲染”。只有在本地和获准的 GitHub Actions Remotion 都不可用或失败时，才进入 FFmpeg fallback。
+
 ## FFmpeg fallback
 
 如果当前环境无法安装 npm / Remotion CLI，不要把任务停在“只有工程文件”。在画面素材已经准备好的情况下，可以用 FFmpeg 按同一份 `storyboard.timed.json`、`narration.mp3` 和精确 `subtitles.srt` 生成 MP4。
@@ -169,7 +199,8 @@ codebase-video-explainer/
 │   └── openai.yaml
 ├── assets/
 │   ├── github-actions/
-│   │   └── natural-tts.yml
+│   │   ├── natural-tts.yml
+│   │   └── remotion-render.yml
 │   └── remotion-template/
 ├── references/
 │   ├── analysis-workflow.md
@@ -182,6 +213,7 @@ codebase-video-explainer/
     ├── build_subtitles.py
     ├── build_tts_job.py
     ├── synthesize_edge_tts.py
+    ├── prepare_remotion_job.py
     ├── check_av_sync.py
     ├── capture_screenshots.py
     ├── render_mermaid.py
