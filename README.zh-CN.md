@@ -12,6 +12,8 @@
 
 [观看或下载 MP4](docs/media/codebase-video-explainer-demo.mp4)
 
+这支演示视频就是由 **Codebase Video Explainer 使用当前仓库自身生成的**。它展示了完整的用户流程：代码仓库分析 → 有源码证据支撑的架构与分镜 → 自然中文旁白和精确字幕 → Remotion 渲染 → 最终质量检查。
+
 ## 安装到 Codex
 
 ### 1. 添加 Marketplace
