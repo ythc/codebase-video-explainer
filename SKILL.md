@@ -5,6 +5,8 @@ description: Analyze an unfamiliar software repository and turn it into an evide
 
 # Codebase Video Explainer
 
+Treat this repository as an Agent Skill first. The scripts, references, Remotion template, and GitHub Actions workflows are supporting resources that this Skill coordinates; they are not a standalone end-user application.
+
 Turn a real codebase into a concise developer walkthrough. Analyze first; animate second. Never infer architecture merely from filenames when the implementation can be verified from source.
 
 ## Output contract
