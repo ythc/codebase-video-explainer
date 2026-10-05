@@ -280,10 +280,10 @@ python scripts/check_av_sync.py \
 
 检查是否存在字幕累计漂移。
 
-## Skill 目录结构
+## Skill 源码目录
 
 ```text
-codebase-video-explainer/
+codebase-video-explainer/  # 可编辑源码，会同步到 plugins/.../skills/codebase-video-explainer/
 ├── SKILL.md
 ├── README.md
 ├── README.zh-CN.md
