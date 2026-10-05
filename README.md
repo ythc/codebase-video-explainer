@@ -4,7 +4,7 @@
 
 A reusable Agent Skill that turns an unfamiliar software repository into an evidence-backed developer explainer video.
 
-It builds a mental model from real source code, traces representative execution paths, then generates architecture visuals, a storyboard, natural Chinese narration with exact TTS-derived subtitles, a Remotion project when available, and an MP4 with an FFmpeg fallback when needed.
+It builds a mental model from real source code, traces representative execution paths, then generates architecture visuals, a storyboard, natural Chinese narration with exact TTS-derived subtitles, a Remotion project, and an MP4. Rendering prefers local Remotion, moves to GitHub Actions Remotion when local npm/browser access is blocked, and uses FFmpeg only as the final fallback.
 
 ## What it produces
 
@@ -39,7 +39,7 @@ Generated artifacts live under `.codebase-video/` in the target project:
 - Use natural, scene-level narration instead of sentence-by-sentence audio splicing.
 - Treat narration audio as the master timeline.
 - Derive final subtitles from real TTS speech boundaries, never character-count timing when audio exists.
-- Prefer Remotion; fall back to FFmpeg when the rendering environment cannot install or run Remotion.
+- Prefer a real Remotion render locally; if local npm/browser access fails, use GitHub Actions Remotion rendering when permitted before falling back to FFmpeg.
 
 ## Skill layout
 
@@ -52,7 +52,8 @@ codebase-video-explainer/
 │   └── openai.yaml
 ├── assets/
 │   ├── github-actions/
-│   │   └── natural-tts.yml
+│   │   ├── natural-tts.yml
+│   │   └── remotion-render.yml
 │   └── remotion-template/
 ├── references/
 │   ├── analysis-workflow.md
@@ -65,6 +66,7 @@ codebase-video-explainer/
     ├── build_subtitles.py
     ├── build_tts_job.py
     ├── synthesize_edge_tts.py
+    ├── prepare_remotion_job.py
     ├── check_av_sync.py
     ├── capture_screenshots.py
     ├── render_mermaid.py
@@ -113,9 +115,23 @@ Use a dedicated Remotion Skill when available. Otherwise initialize the bundled 
 python scripts/init_remotion_project.py --root /path/to/repo --force
 ```
 
-The initializer prefers `storyboard.timed.json` when TTS timing exists.
+The initializer prefers `storyboard.timed.json` when TTS timing exists. Try a real local Remotion render first.
 
-If npm/Remotion is unavailable, use FFmpeg to render the same timed scene visuals, narration, and subtitles. Do not claim the output was rendered by Remotion when FFmpeg was used.
+If local npm, DNS, browser download, or container limits block Remotion, prepare a portable GitHub Actions job:
+
+```bash
+python scripts/prepare_remotion_job.py \
+  --project /path/to/repo/.codebase-video/remotion \
+  --job-dir /path/to/actions-repo/render-jobs/current \
+  --composition CodebaseExplainer \
+  --audio-run-id 123456789 \
+  --audio-artifact-name codebase-video-natural-tts \
+  --force
+```
+
+When `--audio-run-id` is supplied, the prepared job omits the copied narration binary and the workflow downloads `narration.mp3` from that earlier Actions artifact. Then copy `assets/github-actions/remotion-render.yml` to `.github/workflows/codebase-video-remotion-render.yml` in a repository the user permits using. The workflow runs a preview still plus the real Remotion CLI render, verifies the MP4 with ffprobe, and uploads `codebase-video-remotion-render`.
+
+Use FFmpeg only if local and permitted GitHub Actions Remotion rendering are unavailable or fail. Do not claim the output was rendered by Remotion when FFmpeg was used.
 
 ## Sync QA
 
