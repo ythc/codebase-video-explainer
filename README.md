@@ -63,3 +63,16 @@ python scripts/build_project_manifest.py \
 ```
 
 The helper scripts deliberately avoid reading secret-like files such as `.env`, private keys, and credential files.
+
+## V2 production helpers
+
+The Skill now ships with an optional end-to-end production toolkit:
+
+- `scripts/render_mermaid.py` renders `architecture.mmd` to SVG or PNG.
+- `scripts/capture_screenshots.py` captures planned UI screenshots with Playwright.
+- `scripts/build_subtitles.py` converts storyboard narration and scene durations to SRT.
+- `scripts/synthesize_edge_tts.py` can generate Chinese narration audio when `edge-tts` is available.
+- `scripts/init_remotion_project.py` creates a working fallback Remotion project from `assets/remotion-template/`.
+- `references/production-pipeline.md` documents the complete production sequence and fallbacks.
+
+The bundled Remotion template uses current `latest` package tags at install time instead of pinning stale versions. A dedicated Remotion Skill, when available, still takes precedence over the fallback template.
