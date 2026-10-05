@@ -15,27 +15,88 @@ This project can explain itself: the demo above was generated from this reposito
 [Watch or download the MP4](docs/media/codebase-video-explainer-demo.mp4)
 
 
-## Install and use as a Skill
+## Install in Codex
 
-This repository is the **source repository for one Agent Skill**. The distributable Skill bundle should contain only:
+This repository is distributed as a **Codex plugin that bundles one Agent Skill**. Codex installs the plugin; the plugin exposes `codebase-video-explainer` from its `skills/` directory.
 
-```text
-SKILL.md
-agents/
-scripts/
-references/
-assets/
+### 1. Add this repository as a plugin marketplace
+
+From a terminal with Codex installed:
+
+```bash
+codex plugin marketplace add ythc/codebase-video-explainer --ref main
 ```
 
-Repository-facing files such as this README and `docs/media/` are intentionally not part of the packaged Skill.
+Confirm Codex can see it:
 
-Typical usage after installing the Skill:
+```bash
+codex plugin marketplace list
+```
+
+### 2. Install the plugin in Codex
+
+Start Codex:
+
+```bash
+codex
+```
+
+Then open the plugin browser:
+
+```text
+/plugins
+```
+
+Select the `codebase-video-explainer` marketplace, open **Codebase Video Explainer**, and choose **Install plugin**.
+
+Start a **new Codex chat/session** after installation so the bundled Skill is discovered.
+
+### 3. Use it
+
+You do not need to call scripts manually. Ask Codex normally, for example:
 
 ```text
 Analyze this GitHub repository and create a Chinese developer explainer video.
 ```
 
-The Skill should auto-select its bundled workflow, scripts, references, and rendering fallbacks as needed.
+or:
+
+```text
+Use the Codebase Video Explainer skill to explain this codebase for a new developer and render it with Remotion.
+```
+
+Codex can then invoke the bundled Skill and its `scripts/`, `references/`, and `assets/` as needed.
+
+### Plugin layout
+
+```text
+.agents/plugins/marketplace.json
+└── points to plugins/codebase-video-explainer/
+
+plugins/codebase-video-explainer/
+├── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
+└── skills/
+    └── codebase-video-explainer/
+        ├── SKILL.md
+        ├── agents/
+        ├── scripts/
+        ├── references/
+        └── assets/
+```
+
+The top-level `README*.md` and `docs/media/` files are repository documentation only; they are not loaded as Skill context.
+
+### Update the installed marketplace snapshot
+
+When this repository changes:
+
+```bash
+codex plugin marketplace upgrade codebase-video-explainer
+```
+
+Then restart Codex or start a new session before testing the updated plugin.
 
 ## What it produces
 
