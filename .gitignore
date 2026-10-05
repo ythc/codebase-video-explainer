@@ -1,0 +1,8 @@
+.codebase-video/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+out/
+render-jobs/current/
+tts-jobs/current/
