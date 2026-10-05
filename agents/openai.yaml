@@ -1,0 +1,3 @@
+interface:
+  display_name: "Codebase Video Explainer"
+  short_description: "Turn a codebase into an evidence-backed developer explainer video"
