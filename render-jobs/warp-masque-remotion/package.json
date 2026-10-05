@@ -6,9 +6,14 @@
     "render": "remotion render src/index.ts WarpMasqueExplainer out/warp-masque-remotion.mp4 --codec=h264 --pixel-format=yuv420p --concurrency=4"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.532",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "remotion": "4.0.532"
+    "@remotion/cli": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "remotion": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
   }
 }
