@@ -133,10 +133,10 @@ Generated artifacts live under `.codebase-video/` in the target project:
 - Derive final subtitles from real TTS speech boundaries, never character-count timing when audio exists.
 - Prefer a real Remotion render locally; if local npm/browser access fails, use GitHub Actions Remotion rendering when permitted before falling back to FFmpeg.
 
-## Skill layout
+## Skill source layout
 
 ```text
-codebase-video-explainer/
+codebase-video-explainer/  # editable source mirrored into plugins/.../skills/codebase-video-explainer/
 ├── SKILL.md
 ├── README.md
 ├── README.zh-CN.md
