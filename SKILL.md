@@ -1,6 +1,6 @@
 ---
 name: codebase-video-explainer
-description: Analyze an unfamiliar software repository and turn it into an evidence-backed developer explainer video. Use when the user asks to understand, onboard to, explain, visualize, or create a video walkthrough of a local project, Git repository, GitHub repository, application architecture, request flow, module relationships, or codebase. Build a verified project mental model first, then produce architecture visuals, storyboard, natural Chinese narration with exact TTS-derived subtitle timing by default, a Remotion project when available, and an MP4 with FFmpeg fallback when needed.
+description: Analyze an unfamiliar software repository and turn it into an evidence-backed developer explainer video. Use when the user asks to understand, onboard to, explain, visualize, or create a video walkthrough of a local project, Git repository, GitHub repository, application architecture, request flow, module relationships, or codebase. Build a verified project mental model first, then produce architecture visuals, storyboard, natural Chinese narration with exact TTS-derived subtitle timing by default, a Remotion project, and an MP4; prefer local Remotion, use GitHub Actions Remotion when local npm/browser access is blocked, and use FFmpeg only as the final fallback.
 ---
 
 # Codebase Video Explainer
@@ -86,19 +86,33 @@ Do not modify production application code unless the user explicitly asks. Keep 
    - Use `scripts/capture_screenshots.py` with a reviewed screenshot plan.
    - Do not install browser dependencies into the target application unless the user asks.
 
-10. Generate the Remotion implementation when available.
+10. Generate the Remotion implementation.
     - Prefer a Remotion-focused Skill if one is installed.
     - Otherwise use `scripts/init_remotion_project.py --root <repo> --force`.
     - The initializer prefers `storyboard.timed.json` when present and copies narration, subtitles, and timing metadata into the project.
     - Tailor the generic template to the real architecture, code excerpts, screenshots, and execution paths before final delivery.
 
-11. Fall back to FFmpeg when Remotion cannot be installed or rendered.
+11. Prefer a real local Remotion render when npm and the browser runtime are available.
+    - Run TypeScript checking when configured.
+    - Render a preview still before the full MP4.
+    - Run the actual Remotion CLI render command, then verify the result with ffprobe.
+
+12. If local Remotion is blocked by npm registry, DNS, Chromium/browser download, or container limits, use GitHub Actions Remotion before FFmpeg when the user permits an Actions-capable repository.
+    - Prepare `render-jobs/current/` with `scripts/prepare_remotion_job.py --project <repo>/.codebase-video/remotion --job-dir <runner-repo>/render-jobs/current --composition <composition-id> --force`.
+    - Copy `assets/github-actions/remotion-render.yml` to `<runner-repo>/.github/workflows/codebase-video-remotion-render.yml`.
+    - When a prior TTS workflow artifact exists, pass its run ID to `prepare_remotion_job.py` so narration can be downloaded by Actions instead of committed as a binary.
+    - Let the workflow install Node, Chinese fonts, ffmpeg, and project dependencies; run TypeScript checking; render a preview still; execute the real `remotion render`; verify with ffprobe; and upload the MP4 artifact.
+    - Download the `codebase-video-remotion-render` artifact and place the MP4 under `.codebase-video/output.mp4`.
+    - Do not silently commit render jobs or workflow files into a user's repository without permission.
+    - Preserve the workflow run URL or run ID as render provenance.
+
+13. Fall back to FFmpeg only when both local Remotion and GitHub Actions Remotion are unavailable, disallowed, or unsuitable.
     - Reuse the same timed storyboard, scene visuals, narration audio, and exact SRT.
     - For static explainer cards, a low frame rate is acceptable if it materially reduces render time; preserve resolution and legibility.
     - Keep narration and subtitles on the same measured timeline.
     - Never claim a Remotion render occurred when the final MP4 was produced with FFmpeg.
 
-12. Verify synchronization and render quality.
+14. Verify synchronization and render quality.
     - Run `scripts/check_av_sync.py --audio <repo>/.codebase-video/narration.mp3 --subtitles <repo>/.codebase-video/subtitles.srt --video <repo>/.codebase-video/output.mp4` after final render when ffprobe is available.
     - Ensure video/audio duration mismatch stays within the check tolerance.
     - Ensure the last subtitle cue ends close to the narration end.
@@ -139,12 +153,14 @@ Before calling the task complete, verify:
 8. Narration sounds continuous at scene level rather than sentence-by-sentence spliced.
 9. Final subtitles use real TTS boundaries when narration audio exists.
 10. Beginning, middle, and end subtitle sync have been checked.
-11. The Remotion project loads, or the exact blocking dependency is documented and FFmpeg fallback is used when practical.
-12. Final A/V durations pass `scripts/check_av_sync.py` when ffprobe is available.
+11. Local Remotion renders successfully, or GitHub Actions Remotion is attempted before FFmpeg when the blocker is only npm/browser/runtime access.
+12. GitHub Actions Remotion, when used, passes typecheck, preview-still rendering, the full `remotion render`, and ffprobe verification.
+13. Final A/V durations pass `scripts/check_av_sync.py` when ffprobe is available.
+14. Render provenance is stated accurately: call an output a Remotion render only when the Remotion CLI render step succeeded; label FFmpeg fallback explicitly.
 
 ## References
 
 - Read `references/analysis-workflow.md` for repository analysis and evidence requirements.
 - Read `references/storyboard-format.md` before creating `storyboard.json`.
 - Read `references/video-style.md` before implementing scenes.
-- Read `references/production-pipeline.md` for Mermaid, screenshots, natural TTS, exact subtitles, GitHub Actions fallback, Remotion, FFmpeg fallback, and final QA.
+- Read `references/production-pipeline.md` for Mermaid, screenshots, natural TTS, exact subtitles, GitHub Actions TTS and Remotion fallbacks, FFmpeg fallback, and final QA.
