@@ -2,9 +2,9 @@
 
 [English](README.md) | **简体中文**
 
-一个可复用的 Agent Skill：把陌生的软件项目转换成**有源码证据支撑的开发者讲解视频**。
+**Codebase Video Explainer 是一个面向 ChatGPT 的 Agent Skill。** 它教会 ChatGPT 如何把陌生的软件代码仓库转换成**有源码证据支撑的开发者讲解视频**。
 
-它会先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕和 Remotion 工程。渲染优先本地 Remotion；如果本地 npm / 浏览器受限，则优先转到 GitHub Actions 真 Remotion；只有两者都不可用时才用 FFmpeg 保底。
+这个 Skill 编排了一套可复用工作流：先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕和 Remotion 工程。渲染优先本地 Remotion；如果本地 npm / 浏览器受限，则优先转到 GitHub Actions 真 Remotion；只有两者都不可用时才用 FFmpeg 保底。
 
 ## 项目讲解视频
 
