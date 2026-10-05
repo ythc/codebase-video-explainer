@@ -1,0 +1,13 @@
+{
+  "project_path": "render-jobs/current/project",
+  "entrypoint": "src/index.ts",
+  "composition": "CodebaseVideoHomepage",
+  "output_name": "codebase-video-explainer-demo.mp4",
+  "artifact_name": "codebase-video-homepage-remotion",
+  "preview_frame": 300,
+  "concurrency": 4,
+  "audio_run_id": "37338886858",
+  "audio_artifact_name": "codebase-video-natural-tts",
+  "audio_artifact_file": "narration.mp3",
+  "audio_target": "public/narration.mp3"
+}
