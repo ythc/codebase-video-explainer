@@ -33,7 +33,11 @@ def main() -> int:
     skill_root = Path(__file__).resolve().parents[1]
     template = skill_root / "assets" / "remotion-template"
     output = Path(args.output).resolve() if args.output else repo / ".codebase-video" / "remotion"
-    storyboard = Path(args.storyboard).resolve() if args.storyboard else repo / ".codebase-video" / "storyboard.json"
+    if args.storyboard:
+        storyboard = Path(args.storyboard).resolve()
+    else:
+        timed = repo / ".codebase-video" / "storyboard.timed.json"
+        storyboard = timed if timed.exists() else repo / ".codebase-video" / "storyboard.json"
 
     if not template.is_dir():
         raise SystemExit(f"Bundled Remotion template not found: {template}")
@@ -57,6 +61,7 @@ def main() -> int:
     copy_optional(repo / ".codebase-video" / "architecture.mmd", output / "public" / "architecture.mmd")
     copy_optional(repo / ".codebase-video" / "screenshots", output / "public" / "screenshots")
     copy_optional(repo / ".codebase-video" / "narration.mp3", output / "public" / "narration.mp3")
+    copy_optional(repo / ".codebase-video" / "timings.json", output / "public" / "timings.json")
     copy_optional(repo / ".codebase-video" / "subtitles.srt", output / "public" / "subtitles.srt")
 
     print(f"Created Remotion project: {output}")

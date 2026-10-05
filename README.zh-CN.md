@@ -4,89 +4,159 @@
 
 一个可复用的 Agent Skill：把陌生的软件项目转换成**有源码证据支撑的开发者讲解视频**。
 
-它会先从真实代码中建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜脚本、中文旁白/字幕、Remotion 视频工程，并在运行环境支持时渲染出 MP4。
+它会先从真实代码建立项目心智模型，追踪具有代表性的执行链路，再生成架构图、分镜、自然中文旁白、精确字幕、Remotion 工程，并在 Remotion 环境不可用时允许使用 FFmpeg 保底生成 MP4。
 
-## 它能做什么
+## 典型产物
 
-在目标项目中生成 `.codebase-video/` 工作目录，典型产物包括：
+默认输出到目标项目的 `.codebase-video/`：
 
-- `scan.json`：项目文件清单与基础扫描结果
-- `project-manifest.json`：技术栈、依赖、脚本、入口等项目元信息
-- `project-analysis.json`：有证据支撑的项目结构、模块关系与执行链路分析
-- `architecture.mmd`：Mermaid 架构图源文件
-- `architecture.svg`：可选的架构图渲染结果
-- `storyboard.json`：逐场景视频分镜
-- `narration.zh-CN.md`：默认中文旁白文稿
-- `subtitles.srt`：根据场景时间轴生成的字幕
-- `narration.mp3`：可选的 TTS 中文配音
-- `screenshots/`：可选的 UI 截图素材
-- `remotion/`：生成的 Remotion 视频工程
-- `output.mp4`：环境支持时生成的最终视频
+- `scan.json`：项目扫描结果
+- `project-manifest.json`：技术栈、依赖、脚本和入口
+- `project-analysis.json`：证据化架构与执行链路分析
+- `architecture.mmd` / `architecture.svg`：架构图
+- `storyboard.json`：初始分镜
+- `narration.zh-CN.md`：中文口播稿
+- `narration.mp3`：最终旁白
+- `timings.json`：真实音频时间轴
+- `storyboard.timed.json`：按真实语音时长修正后的分镜
+- `subtitles.srt`：真实 TTS 边界生成的字幕
+- `remotion/`：Remotion 工程
+- `output.mp4`：最终视频
 
-## 适合什么场景
+## 适用场景
 
-这个 Skill 适合：
+- 快速理解陌生 GitHub 项目或本地代码仓库
+- 为新成员制作 onboarding 视频
+- 解释 API、数据库、队列、鉴权、第三方服务之间的调用关系
+- 把真实请求或业务流程做成执行链路动画
+- 生成中文项目讲解视频
 
-- 快速理解一个陌生 GitHub 项目或本地代码仓库
-- 给新成员制作项目 onboarding 视频
-- 解释前后端、API、数据库、队列、AI 服务之间的调用关系
-- 把一次真实请求或业务流程做成可视化执行链路
-- 从「项目结构」逐步讲到「关键文件」和「关键代码」
-- 为复杂项目自动生成中文技术讲解视频
+## 关键设计原则
 
-## 示例提示词
+- **先分析，后动画。**
+- **执行链路优先于目录导览。**
+- **架构结论必须有源码证据。**
+- **旁白按场景整段生成，不要一句一句拼接。**
+- **真实音频是最终时间轴。**
+- **有 TTS 时禁止再按字符数估字幕时间。**
+- **最终字幕优先使用 Edge TTS `SentenceBoundary`。**
+- **优先 Remotion，Remotion 不可用时可以使用 FFmpeg fallback。**
+- **默认不使用 `espeak` / `pyttsx3` 这类机械音作为正式成片旁白。**
 
-```text
-分析当前项目并生成一个 10 分钟左右的中文项目讲解视频。
-```
+## V3：自然中文旁白 + 精确字幕
 
-```text
-把这个 GitHub 仓库做成一个适合新开发者 onboarding 的架构讲解视频。
-```
-
-```text
-重点讲清楚这个项目从 API 请求到数据库写入的完整链路，并生成 Remotion 视频。
-```
-
-```text
-先分析项目结构，再选择 2 条最有代表性的执行链路，生成中文旁白、字幕和 MP4。
-```
-
-## 设计原则
-
-- **先分析，后动画。** 不在没读懂项目之前直接做视频。
-- **执行链路优先于目录导览。** 重点解释代码是怎么真正跑起来的。
-- **架构结论必须绑定源码证据。** 不根据文件名臆测模块关系。
-- **明确区分已验证、推断和未知。** 避免把猜测说成事实。
-- **尽量不修改业务源码。** 生成内容默认隔离到 `.codebase-video/`。
-- **优先复用专业 Remotion Skill。** 没有时才使用本仓库内置的 fallback 模板。
-- **避免泄露敏感信息。** 不读取或输出 `.env`、私钥、凭证、Token 等秘密值。
-
-## 工作流程
-
-大致流程如下：
+推荐默认音色：
 
 ```text
-代码仓库
-   ↓
-扫描项目结构
-   ↓
-识别技术栈 / 入口 / 模块 / 外部服务
-   ↓
-建立证据化项目心智模型
-   ↓
-选择 1～3 条代表性执行链路
-   ↓
-生成架构图 + 分镜 + 中文旁白
-   ↓
-生成字幕 / 可选 TTS / 可选截图
-   ↓
-生成 Remotion 工程
-   ↓
-预览与检查
-   ↓
-渲染 MP4
+zh-CN-YunyangNeural
 ```
+
+推荐参数：
+
+```text
+语速：-5%
+音高：-2Hz
+场景间隔：0.7 秒
+```
+
+直接从 `storyboard.json` 生成整套旁白与时间轴：
+
+```bash
+python scripts/synthesize_edge_tts.py \
+  --storyboard /path/to/repo/.codebase-video/storyboard.json \
+  --output-dir /path/to/repo/.codebase-video
+```
+
+它会：
+
+1. 每个场景只发起一次连续 TTS；
+2. 同时记录 Edge TTS 的 `SentenceBoundary`；
+3. 对人声做统一响度处理；
+4. 生成 `narration.mp3`；
+5. 根据真实发音 offset / duration 生成 `subtitles.srt`；
+6. 生成 `timings.json`；
+7. 把真实语音时长写入 `storyboard.timed.json`。
+
+这样最终视频不会再出现“前面字幕还行，后面越来越偏”的累计漂移。
+
+> `scripts/build_subtitles.py` 现在只适合在还没有 TTS 音频时生成**草稿字幕**。有真实语音以后，最终字幕必须以真实 TTS 时间戳为准。
+
+## 免费 GitHub Actions TTS fallback
+
+如果当前执行环境无法访问 Edge TTS，可以使用 GitHub Actions 免费生成，不需要 Azure 订阅或 TTS API Key。
+
+先把分镜转换成 TTS job：
+
+```bash
+python scripts/build_tts_job.py \
+  --storyboard /path/to/repo/.codebase-video/storyboard.json \
+  --output /path/to/actions-repo/tts-jobs/current/scenes.json
+```
+
+再把：
+
+```text
+assets/github-actions/natural-tts.yml
+```
+
+复制到允许使用的 GitHub 仓库：
+
+```text
+.github/workflows/codebase-video-natural-tts.yml
+```
+
+工作流会自动生成并上传 artifact：
+
+- `narration.mp3`
+- `subtitles.srt`
+- `timings.json`
+- TTS 边界元数据
+
+只有在用户允许的情况下才向其仓库提交工作流文件。
+
+## Remotion
+
+如果有专门的 Remotion Skill，优先使用它。
+
+否则：
+
+```bash
+python scripts/init_remotion_project.py \
+  --root /path/to/repo \
+  --force
+```
+
+当 `storyboard.timed.json` 存在时，初始化脚本会优先使用真实 TTS 时长，而不是最初估算的 `storyboard.json`。
+
+## FFmpeg fallback
+
+如果当前环境无法安装 npm / Remotion CLI，不要把任务停在“只有工程文件”。在画面素材已经准备好的情况下，可以用 FFmpeg 按同一份 `storyboard.timed.json`、`narration.mp3` 和精确 `subtitles.srt` 生成 MP4。
+
+注意：
+
+- 不能拿已经烧过旧字幕的 MP4 再叠新版字幕；
+- 字幕时间变化时，应从干净场景画面重新渲染；
+- 对主要由静态技术卡片组成的视频，可以降低帧率来缩短渲染时间，但要保持 1080p 可读性；
+- 如果最终使用 FFmpeg，要明确说明并非 Remotion 渲染。
+
+## 同步质量检查
+
+最终成片后运行：
+
+```bash
+python scripts/check_av_sync.py \
+  --audio /path/to/repo/.codebase-video/narration.mp3 \
+  --subtitles /path/to/repo/.codebase-video/subtitles.srt \
+  --video /path/to/repo/.codebase-video/output.mp4
+```
+
+同时人工抽查三个位置：
+
+- 开头 30～60 秒
+- 视频中段
+- 最后 1 分钟
+
+检查是否存在字幕累计漂移。
 
 ## Skill 目录结构
 
@@ -98,6 +168,8 @@ codebase-video-explainer/
 ├── agents/
 │   └── openai.yaml
 ├── assets/
+│   ├── github-actions/
+│   │   └── natural-tts.yml
 │   └── remotion-template/
 ├── references/
 │   ├── analysis-workflow.md
@@ -108,176 +180,24 @@ codebase-video-explainer/
     ├── scan_codebase.py
     ├── build_project_manifest.py
     ├── build_subtitles.py
+    ├── build_tts_job.py
+    ├── synthesize_edge_tts.py
+    ├── check_av_sync.py
     ├── capture_screenshots.py
-    ├── init_remotion_project.py
     ├── render_mermaid.py
-    └── synthesize_edge_tts.py
+    └── init_remotion_project.py
 ```
-
-## 本地辅助脚本
-
-### 1. 扫描代码仓库
-
-```bash
-python scripts/scan_codebase.py \
-  --root /path/to/repo \
-  --output /path/to/repo/.codebase-video/scan.json
-```
-
-默认会忽略：
-
-- `.git`
-- `node_modules`
-- `dist`
-- `build`
-- `.next`
-- `target`
-- `vendor`
-- Python 虚拟环境和缓存目录
-- `.codebase-video`
-
-同时会跳过 `.env`、私钥、凭证文件等可能包含敏感信息的文件。
-
-### 2. 生成项目 manifest
-
-```bash
-python scripts/build_project_manifest.py \
-  --root /path/to/repo \
-  --scan /path/to/repo/.codebase-video/scan.json \
-  --output /path/to/repo/.codebase-video/project-manifest.json
-```
-
-用于识别 Node.js、Python、Go、Rust、JVM 等生态信息，以及包管理器、框架、入口候选和部署配置。
-
-## V2 视频生产工具
-
-### Mermaid 架构图渲染
-
-```bash
-python scripts/render_mermaid.py \
-  --input /path/to/repo/.codebase-video/architecture.mmd \
-  --output /path/to/repo/.codebase-video/architecture.svg
-```
-
-优先使用本机 `mmdc`，没有时会尝试通过 `npx @mermaid-js/mermaid-cli` 调用。
-
-### 自动生成字幕
-
-```bash
-python scripts/build_subtitles.py \
-  --storyboard /path/to/repo/.codebase-video/storyboard.json \
-  --output /path/to/repo/.codebase-video/subtitles.srt
-```
-
-会根据每个场景的 `duration_seconds` 和旁白内容生成 SRT 时间轴。
-
-### UI 自动截图
-
-当运行中的项目页面有助于讲解时，可以先创建截图计划，然后通过 Playwright 自动截图：
-
-```bash
-python scripts/capture_screenshots.py \
-  --plan /path/to/repo/.codebase-video/screenshot-plan.json \
-  --output-dir /path/to/repo/.codebase-video/screenshots
-```
-
-截图不是必选项，只在能明显提升理解时使用。
-
-### 中文 TTS 配音
-
-如果执行环境已经安装 `edge-tts`，可以生成中文旁白：
-
-```bash
-python scripts/synthesize_edge_tts.py \
-  --input /path/to/repo/.codebase-video/narration.zh-CN.md \
-  --output /path/to/repo/.codebase-video/narration.mp3
-```
-
-默认语音为：
-
-```text
-zh-CN-XiaoxiaoNeural
-```
-
-TTS 是可选能力。没有 TTS 时，Skill 仍应完成旁白文本、字幕、Remotion 工程和可渲染的视觉内容。
-
-### 初始化 Remotion 工程
-
-```bash
-python scripts/init_remotion_project.py \
-  --root /path/to/repo \
-  --force
-```
-
-然后：
-
-```bash
-cd /path/to/repo/.codebase-video/remotion
-npm install
-npm run studio
-npm run render
-```
-
-内置模板只是 fallback。最终视频应根据真实项目的架构、代码、截图和执行链路进行定制，而不是直接使用占位画面作为最终成品。
-
-## 默认视频规格
-
-默认情况下：
-
-- 语言：简体中文
-- 时长：根据项目复杂度自动调整，通常约 5～15 分钟
-- 分辨率：1920 × 1080
-- 帧率：30 FPS
-- 编码：H.264
-- 容器：MP4
-- 讲解对象：第一次接触该项目的开发者
-
-## 推荐视频结构
-
-一个典型的视频会按以下顺序组织：
-
-1. 项目是做什么的
-2. 技术栈和运行边界
-3. 高层架构
-4. 关键模块和目录心智模型
-5. 一条主要请求 / 事件执行链路
-6. 数据库、鉴权、外部服务等关键边界
-7. 2～3 个重要代码片段
-8. 修改一个常见需求应该从哪里入手
-9. 总结与回顾
 
 ## 安全原则
 
-Skill 应避免：
+不要输出或写入视频：
 
-- 输出 `.env` 中的真实值
-- 输出 API Token、Cookie、密码或密钥
-- 把凭证文件复制进视频工程
-- 因为目录名或 README 描述就断言代码关系
-- 为了截图或视频生成而擅自修改业务代码
+- `.env` 真实值
+- API Token
+- Cookie
+- 密码
+- 私钥
+- 证书私密部分
+- Secret Manager 返回的真实凭据
 
-## 安装
-
-可以直接使用仓库根目录中的：
-
-```text
-skill.zip
-```
-
-将其作为 Skill 安装包上传即可。
-
-## 当前状态
-
-V2 已包含：
-
-- 项目扫描与 manifest 生成
-- 证据化代码分析工作流
-- 分镜规范
-- Mermaid 架构图支持
-- SRT 字幕生成
-- Playwright 截图辅助
-- 可选 Edge TTS 中文配音
-- Remotion fallback 工程模板
-- MP4 渲染工作流
-
-后续可以继续增强真实项目上的自动化程度，例如更智能的代码摘录、架构动画组件、TTS 时间轴对齐和自动质量检查。
+只展示配置名称、接口关系和必要的非敏感结构。

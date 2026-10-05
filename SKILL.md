@@ -1,143 +1,150 @@
 ---
 name: codebase-video-explainer
-description: Analyze an unfamiliar software repository and turn it into a developer-oriented visual explainer video. Use when the user asks to understand, onboard to, explain, visualize, or create a video walkthrough of a local project, Git repository, GitHub repository, application architecture, request flow, module relationships, or codebase. Build an evidence-backed project mental model first, then produce architecture diagrams, a structured storyboard, Chinese narration/subtitles by default, a Remotion video project, and an MP4 when rendering is available.
+description: Analyze an unfamiliar software repository and turn it into an evidence-backed developer explainer video. Use when the user asks to understand, onboard to, explain, visualize, or create a video walkthrough of a local project, Git repository, GitHub repository, application architecture, request flow, module relationships, or codebase. Build a verified project mental model first, then produce architecture visuals, storyboard, natural Chinese narration with exact TTS-derived subtitle timing by default, a Remotion project when available, and an MP4 with FFmpeg fallback when needed.
 ---
 
 # Codebase Video Explainer
 
-Turn a real codebase into a concise visual developer walkthrough. Analyze first; animate second. Never infer architecture merely from filenames when the implementation can be verified from source.
+Turn a real codebase into a concise developer walkthrough. Analyze first; animate second. Never infer architecture merely from filenames when the implementation can be verified from source.
 
 ## Output contract
 
-Create work products under `.codebase-video/` in the target project unless the user specifies another output directory:
+Create work products under `.codebase-video/` in the target project unless the user specifies another directory:
 
-- `scan.json` — deterministic repository inventory from `scripts/scan_codebase.py`.
-- `project-manifest.json` — technology, package, script, entrypoint, and dependency summary from `scripts/build_project_manifest.py`.
-- `project-analysis.json` — evidence-backed mental model, modules, important files, external systems, and execution paths.
-- `architecture.mmd` — Mermaid architecture diagram.
-- `architecture.svg` — rendered diagram when Mermaid rendering is available.
-- `screenshots/` — optional UI screenshots captured from a running app.
-- `storyboard.json` — scene-by-scene video specification following `references/storyboard-format.md`.
-- `narration.zh-CN.md` — Chinese narration and subtitle copy by default.
-- `subtitles.srt` — deterministic subtitle track derived from scene timing.
-- `narration.mp3` — optional TTS output when a supported TTS provider is available.
+- `scan.json` — deterministic repository inventory.
+- `project-manifest.json` — technology, package, script, entrypoint, and dependency summary.
+- `project-analysis.json` — evidence-backed mental model, modules, external systems, important files, execution paths, risks, and unknowns.
+- `architecture.mmd` — Mermaid architecture source.
+- `architecture.svg` — rendered architecture when available.
+- `screenshots/` — optional UI screenshots.
+- `storyboard.json` — initial scene plan.
+- `narration.zh-CN.md` — natural Chinese narration copy by default.
+- `narration.mp3` — final narration audio when TTS succeeds.
+- `timings.json` — measured per-scene audio timing.
+- `storyboard.timed.json` — storyboard with scene durations replaced by measured TTS durations.
+- `subtitles.srt` — final subtitles derived from real TTS speech boundaries when TTS is used.
 - `remotion/` — generated Remotion project.
-- `output.mp4` — final video when rendering succeeds.
+- `output.mp4` — final video.
 
-Do not modify production application code unless the user explicitly asks. Keep generated video artifacts isolated under `.codebase-video/`.
+Do not modify production application code unless the user explicitly asks. Keep generated artifacts isolated under `.codebase-video/` whenever possible.
 
-## Workflow
+## Core workflow
 
 1. Resolve the repository.
    - Prefer the current working directory when it is the user's project.
-   - If the user provides a GitHub repository or URL, use an available GitHub connector, Git client, or repository checkout mechanism to access the source.
+   - For a GitHub URL, use an available GitHub connector, Git client, or checkout mechanism.
    - If no repository is available, request the repository path or URL.
 
-2. Create `.codebase-video/` and inventory the project.
-   - Run:
-     `python <skill-dir>/scripts/scan_codebase.py --root <repo> --output <repo>/.codebase-video/scan.json`
-   - Then run:
-     `python <skill-dir>/scripts/build_project_manifest.py --root <repo> --scan <repo>/.codebase-video/scan.json --output <repo>/.codebase-video/project-manifest.json`
-   - Do not recursively inspect dependency/build directories such as `node_modules`, `.git`, `.next`, `dist`, `build`, `target`, `vendor`, coverage output, caches, virtualenvs, or generated bundles.
+2. Inventory the project.
+   - Run `scripts/scan_codebase.py`.
+   - Run `scripts/build_project_manifest.py`.
+   - Skip dependency/build trees such as `node_modules`, `.git`, `.next`, `dist`, `build`, `target`, `vendor`, caches, virtualenvs, and generated bundles.
 
-3. Build a mental model from evidence.
+3. Build an evidence-backed mental model.
    - Follow `references/analysis-workflow.md`.
-   - Read README and package/build manifests first, then entrypoints, routing/bootstrap code, major module boundaries, data/storage code, external service clients, and representative tests.
-   - Identify the project's purpose, tech stack, startup path, important modules, boundaries, APIs, storage, auth, jobs/events, external services, and risky/complex areas.
+   - Read README/package/build manifests, then entrypoints, routes/bootstrap code, core modules, storage, auth, external clients, and representative tests.
    - Trace 1–3 representative execution paths through real files and symbols.
-   - Record supporting file paths and symbol names for every important architectural claim.
-   - Explicitly label uncertainty when a relationship cannot be verified.
+   - Record supporting paths/symbols for important architectural claims.
+   - Label uncertainty explicitly.
 
-4. Produce `project-analysis.json`.
-   Include at least:
-   - `summary`
-   - `tech_stack`
-   - `entrypoints`
-   - `modules`
-   - `external_systems`
-   - `important_files`
-   - `execution_paths`
-   - `developer_mental_model`
-   - `risks_and_unknowns`
-   - `evidence`
+4. Produce `project-analysis.json` and `architecture.mmd`.
+   - Keep the architecture diagram compact and module-oriented rather than one node per file.
+   - Render to SVG with `scripts/render_mermaid.py` when possible.
 
-5. Produce `architecture.mmd`.
-   - Prefer a compact Mermaid flowchart or sequence diagram.
-   - Show system boundaries and actual verified relationships.
-   - Avoid one node per file. Group files into meaningful modules or services.
-   - When Mermaid rendering is available, run `scripts/render_mermaid.py` to create `.codebase-video/architecture.svg`.
-
-6. Design the video before implementing it.
+5. Design the video before implementing it.
    - Follow `references/storyboard-format.md` and `references/video-style.md`.
-   - Default target duration: 5–15 minutes, adapted to project complexity.
+   - Default audience: developer new to the repository.
    - Default language: Simplified Chinese.
-   - Default audience: developer who has never seen the project.
-   - Prefer the progression: project purpose → architecture → module map → representative flow → key code → modification guide → recap.
-   - Prefer visuals over paragraphs: animated architecture, file tree zooms, arrows, request/data flow, sequence diagrams, code highlights, and UI screenshots when they clarify behavior.
+   - Default duration: roughly 5–15 minutes, adapted to complexity.
+   - Prefer: purpose → architecture → module map → representative execution flow → key code → modification guide → recap.
 
-7. Create `storyboard.json` and `narration.zh-CN.md`.
-   - Every scene must state its teaching purpose, evidence source, narration, visuals, animation, and approximate duration.
-   - Keep on-screen text short.
-   - Never present an unverified inference as fact in narration.
-   - Run `scripts/build_subtitles.py` to create `.codebase-video/subtitles.srt`.
+6. Write `storyboard.json` and `narration.zh-CN.md`.
+   - Write narration for speech, not for reading a document aloud.
+   - Rewrite awkward file paths, symbols, acronyms, and URLs into natural spoken Chinese when meaning is preserved.
+   - Prefer one continuous narration block per scene instead of many tiny TTS clips.
+   - Keep on-screen text short and evidence-backed.
 
-8. Collect optional visual assets.
-   - Read `references/production-pipeline.md`.
-   - Capture UI screenshots only when they clarify the explanation and the target app can be run safely.
+7. Generate narration and final timing.
+   - Read `references/production-pipeline.md` before audio/video production.
+   - Prefer `zh-CN-YunyangNeural` for Chinese developer narration unless the user chooses another voice.
+   - Preferred local command:
+     `python <skill-dir>/scripts/synthesize_edge_tts.py --storyboard <repo>/.codebase-video/storyboard.json --output-dir <repo>/.codebase-video`
+   - This must synthesize each scene continuously and use Edge TTS `SentenceBoundary` metadata for final subtitle timing.
+   - Treat audio timing as the master timeline. Use `storyboard.timed.json`, not the original estimated durations, for final rendering.
+   - Never derive final subtitles by distributing time according to character count when TTS audio exists.
+   - Never default to `espeak`, `pyttsx3`, or similar robotic offline voices for a deliverable unless the user explicitly accepts that fallback.
+
+8. If local Edge TTS networking is unavailable, use the free GitHub Actions fallback when the user has an Actions-capable repository they permit using.
+   - Generate `tts-jobs/current/scenes.json` with `scripts/build_tts_job.py`.
+   - Copy `assets/github-actions/natural-tts.yml` to `.github/workflows/codebase-video-natural-tts.yml` in the permitted runner repository.
+   - Let the workflow generate `narration.mp3`, `subtitles.srt`, `timings.json`, and boundary metadata.
+   - Download the artifact and place the final files under `.codebase-video/`.
+   - Do not silently commit workflow files to a user's repository without permission.
+
+9. Collect optional visual assets.
+   - Capture screenshots only when they materially improve understanding and the target app can be run safely.
    - Use `scripts/capture_screenshots.py` with a reviewed screenshot plan.
-   - Do not install browser dependencies into the target application unless the user explicitly asks.
+   - Do not install browser dependencies into the target application unless the user asks.
 
-9. Generate the Remotion implementation.
-   - If a Remotion-focused Skill is available in the environment, use it for current Remotion conventions, animation patterns, media handling, preview, and rendering.
-   - Otherwise run `scripts/init_remotion_project.py --root <repo> --force` to create a fallback Remotion project under `.codebase-video/remotion/`, then tailor it to the real storyboard.
-   - Keep architecture/module visuals as reusable components rather than a single giant scene.
-   - Use syntax-highlighted code excerpts copied from the repository; do not retype code from memory.
-   - Keep long code blocks out of the video. Highlight only the lines needed to explain the current concept.
+10. Generate the Remotion implementation when available.
+    - Prefer a Remotion-focused Skill if one is installed.
+    - Otherwise use `scripts/init_remotion_project.py --root <repo> --force`.
+    - The initializer prefers `storyboard.timed.json` when present and copies narration, subtitles, and timing metadata into the project.
+    - Tailor the generic template to the real architecture, code excerpts, screenshots, and execution paths before final delivery.
 
-10. Narration and subtitles.
-   - Generate Chinese narration by default.
-   - Generate timed subtitles from the same narration text.
-   - If a TTS capability is available, synthesize narration audio and align scenes/subtitles to the audio duration. The bundled `scripts/synthesize_edge_tts.py` is an optional fallback when `edge-tts` is installed.
-   - If no TTS capability is available, still complete the narration, subtitles, and renderable visual project; state the missing audio dependency instead of fabricating an audio file.
+11. Fall back to FFmpeg when Remotion cannot be installed or rendered.
+    - Reuse the same timed storyboard, scene visuals, narration audio, and exact SRT.
+    - For static explainer cards, a low frame rate is acceptable if it materially reduces render time; preserve resolution and legibility.
+    - Keep narration and subtitles on the same measured timeline.
+    - Never claim a Remotion render occurred when the final MP4 was produced with FFmpeg.
 
-11. Preview and verify.
-    - Open or run Remotion Studio when available.
-    - Verify that all compositions load, text fits, code is legible, animations do not overlap, assets resolve, and the full timeline renders without errors.
-    - Fix render/runtime errors before final export.
+12. Verify synchronization and render quality.
+    - Run `scripts/check_av_sync.py --audio <repo>/.codebase-video/narration.mp3 --subtitles <repo>/.codebase-video/subtitles.srt --video <repo>/.codebase-video/output.mp4` after final render when ffprobe is available.
+    - Ensure video/audio duration mismatch stays within the check tolerance.
+    - Ensure the last subtitle cue ends close to the narration end.
+    - Sample-check beginning, middle, and ending subtitle sync visually/audibly.
 
-12. Render.
-    - Default: 1920×1080, 30 FPS, H.264 MP4 unless the user requests otherwise.
-    - Render to `.codebase-video/output.mp4`.
-    - If final rendering is impossible in the current environment, deliver the complete Remotion project plus the exact render command and explain the missing prerequisite.
+## TTS and subtitle rules
+
+- Use one continuous TTS request per scene whenever practical.
+- Use Edge TTS `SentenceBoundary` offsets/durations for final SRT cues.
+- Keep a short natural gap between scenes; default around 0.7 seconds.
+- Normalize narration to a consistent perceived loudness before final delivery.
+- If TTS is unavailable, `scripts/build_subtitles.py` may create draft subtitles from estimated scene timing, but label them as estimated and do not present them as synchronized final subtitles.
+- If exact TTS metadata is available, it always overrides estimated storyboard timing.
+- Do not time-stretch speech merely to fit an estimated storyboard duration; update the scene duration to match the speech instead.
 
 ## Analysis rules
 
-- Do not explain every file. Explain the smallest set of files that gives the viewer an accurate mental model.
+- Do not explain every file; explain the smallest set that yields an accurate mental model.
 - Prefer execution paths over directory tours.
 - Separate verified facts from inference.
 - Treat README claims as orientation, not proof, when implementation disagrees.
 - Use tests to validate expected behavior when practical.
-- For large monorepos, first identify apps/packages and scope the video to the user's requested product or the primary runnable application.
-- Avoid exposing secrets from `.env`, credentials, tokens, keys, private certificates, or secret-manager output. Show configuration names, never secret values.
-- Avoid including large generated files or third-party source in the analysis.
+- For monorepos, identify apps/packages first and scope the video to the requested or primary runnable application.
+- Never expose `.env` values, tokens, passwords, private keys, certificates, cookies, or secret-manager output.
+- Avoid large generated files and third-party source in analysis.
 
 ## Quality gates
 
-Before calling the task complete, verify all of the following:
+Before calling the task complete, verify:
 
-1. The project purpose is understandable in under 60 seconds of video.
+1. The project purpose is understandable in under 60 seconds.
 2. The architecture diagram matches verified source relationships.
 3. At least one representative end-to-end execution path is shown.
 4. Every key code excerpt exists in the repository at generation time.
-5. The storyboard has no scene whose only purpose is to display a paragraph.
-6. The viewer learns where to make a common change and what downstream modules it affects.
-7. Unknown or ambiguous relationships are labeled as such.
-8. The Remotion project loads successfully, or the exact blocking dependency is documented.
-9. The final MP4 renders successfully when the environment supports rendering.
+5. No scene exists only to display a paragraph.
+6. The viewer learns where to make at least one common change safely.
+7. Unknown relationships are labeled.
+8. Narration sounds continuous at scene level rather than sentence-by-sentence spliced.
+9. Final subtitles use real TTS boundaries when narration audio exists.
+10. Beginning, middle, and end subtitle sync have been checked.
+11. The Remotion project loads, or the exact blocking dependency is documented and FFmpeg fallback is used when practical.
+12. Final A/V durations pass `scripts/check_av_sync.py` when ffprobe is available.
 
 ## References
 
 - Read `references/analysis-workflow.md` for repository analysis and evidence requirements.
 - Read `references/storyboard-format.md` before creating `storyboard.json`.
-- Read `references/video-style.md` before implementing Remotion scenes.
-- Read `references/production-pipeline.md` for architecture rendering, screenshots, subtitles, optional TTS, Remotion initialization, and final verification.
+- Read `references/video-style.md` before implementing scenes.
+- Read `references/production-pipeline.md` for Mermaid, screenshots, natural TTS, exact subtitles, GitHub Actions fallback, Remotion, FFmpeg fallback, and final QA.
